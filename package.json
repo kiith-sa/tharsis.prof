@@ -1,5 +1,5 @@
 {
-    "name": "frameprof",
+    "name": "tharsis-prof",
     "description": "Frame profiler library for games",
     "authors": [ "Ferdinand Majerech" ],
     "libs": [],
