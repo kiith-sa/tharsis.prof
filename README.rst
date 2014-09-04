@@ -93,6 +93,10 @@ Processing profiling data:
     }
 
 
+For detailed documentation with more specific code examples, see the 
+`API documentation <http://defenestrate.eu/docs/tharsis.prof/index.html>`_.
+
+
 --------
 Features
 --------
