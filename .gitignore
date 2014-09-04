@@ -1,0 +1,10 @@
+/dub.selections.json
+/libframeprof.a
+/__test__library__
+.dub
+docs.json
+__dummy.html
+*.o
+*.obj
+*.bkp
+source/autoddoc/*
