@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.11: http://docutils.sourceforge.net/" />
+<title>Tharsis.prof</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7614 2013-02-21 15:55:51Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="tharsis-prof">
+<h1 class="title">Tharsis.prof</h1>
+
+<div class="section" id="introduction">
+<h1>Introduction</h1>
+<p>Tharsis.prof is an open source frame-based profiler library for the D programming
+language. A frame-based profiler keeps track of overhead separately for individual frames
+in a game. This is useful to track down issues with inconsistent overhead (such as lag
+that appears only once in a few seconds) that are hard to detect with conventional
+profilers.</p>
+<p>Tharsis.prof is designed to be easy to use and lightweight. See the example below to get
+started.</p>
+<p>Note that this is still a <strong>work in progress</strong>. Its API is not stable and there might be
+compatibility <strong>breaking changes</strong> in future.</p>
+</div>
+<div class="section" id="getting-started">
+<h1>Getting started</h1>
+<p>Assuming you use <a class="reference external" href="http://code.dlang.org/about">dub</a>, add this line:</p>
+<pre class="literal-block">
+&quot;tharsis.prof&quot;: { &quot;version&quot; : &quot;~&gt;0.1.0&quot; }
+</pre>
+<p>to the <tt class="docutils literal">&quot;dependencies&quot;</tt> in your project's <tt class="docutils literal">dub.json</tt>/<tt class="docutils literal">package.json</tt>.</p>
+<p>Tharsis.prof requires DMD 2.066 or equivalent GDC/LDC.</p>
+<p>Recording profiling data:</p>
+<pre class="code d literal-block">
+<span class="keyword">import</span> <span class="name">tharsis</span><span class="punctuation">.</span><span class="name">prof</span><span class="punctuation">;</span>
+
+<span class="comment single">// Get 2 MB more than the minimum (maxEventBytes). Could also use malloc() here.
+</span><span class="keyword type">ubyte</span><span class="punctuation">[]</span> <span class="name">storage</span> <span class="punctuation">=</span> <span class="keyword">new</span> <span class="keyword type">ubyte</span><span class="punctuation">[</span><span class="name">Profiler</span><span class="punctuation">.</span><span class="name">maxEventBytes</span> <span class="punctuation">+</span> <span class="literal number integer">1024</span> <span class="punctuation">*</span> <span class="literal number integer">1024</span> <span class="punctuation">*</span> <span class="literal number integer">2</span><span class="punctuation">];</span>
+<span class="comment single">// Could use std.typecons.scoped! to avoid GC here.
+</span><span class="keyword">auto</span> <span class="name">profiler</span> <span class="punctuation">=</span> <span class="keyword">new</span> <span class="name">Profiler</span><span class="punctuation">(</span><span class="name">storage</span><span class="punctuation">);</span>
+
+<span class="keyword">while</span><span class="punctuation">(!</span><span class="name">done</span><span class="punctuation">)</span>
+<span class="punctuation">{</span>
+    <span class="keyword">auto</span> <span class="name">frameZone</span> <span class="punctuation">=</span> <span class="name">Zone</span><span class="punctuation">(</span><span class="name">profiler</span><span class="punctuation">,</span> <span class="literal string">&quot;frame&quot;</span><span class="punctuation">);</span>
+    <span class="punctuation">{</span>
+        <span class="keyword">auto</span> <span class="name">renderingZone</span> <span class="punctuation">=</span> <span class="name">Zone</span><span class="punctuation">(</span><span class="name">profiler</span><span class="punctuation">,</span> <span class="literal string">&quot;rendering&quot;</span><span class="punctuation">);</span>
+
+        <span class="comment single">// do rendering here
+</span>    <span class="punctuation">}</span>
+    <span class="punctuation">{</span>
+        <span class="keyword">auto</span> <span class="name">physicsZone</span> <span class="punctuation">=</span> <span class="name">Zone</span><span class="punctuation">(</span><span class="name">profiler</span><span class="punctuation">,</span> <span class="literal string">&quot;physics&quot;</span><span class="punctuation">);</span>
+
+        <span class="comment single">// do physics here
+</span>    <span class="punctuation">}</span>
+<span class="punctuation">}</span>
+</pre>
+<p>Processing profiling data:</p>
+<pre class="code d literal-block">
+<span class="comment single">// Filter all instances of the &quot;frame&quot; zone
+</span><span class="keyword">auto</span> <span class="name">zones</span> <span class="punctuation">=</span> <span class="name">profiler</span><span class="punctuation">.</span><span class="name">profileData</span><span class="punctuation">.</span><span class="name">zoneRange</span><span class="punctuation">;</span>
+<span class="keyword">auto</span> <span class="name">frames</span> <span class="punctuation">=</span> <span class="name">zones</span><span class="punctuation">.</span><span class="name">filter</span><span class="punctuation">!(</span><span class="name">z</span> <span class="punctuation">=&gt;</span> <span class="name">z</span><span class="punctuation">.</span><span class="name">info</span> <span class="punctuation">==</span> <span class="literal string">&quot;frame&quot;</span><span class="punctuation">);</span>
+
+<span class="comment single">// Sort the frames by duration from longest to shortest.
+</span><span class="keyword">import</span> <span class="name">std</span><span class="punctuation">.</span><span class="name">container</span><span class="punctuation">;</span>
+<span class="comment single">// Builds an RAII array containing zones from frames. We need an array as we need
+// random access to sort the zones (ZoneRange generates ZoneData on-the-fly as it
+// processes profiling data, so it has no random access).
+</span><span class="keyword">auto</span> <span class="name">frameArray</span> <span class="punctuation">=</span> <span class="name">Array</span><span class="punctuation">!</span><span class="name">ZoneData</span><span class="punctuation">(</span><span class="name">frames</span><span class="punctuation">);</span>
+<span class="name">frameArray</span><span class="punctuation">[].</span><span class="name">sort</span><span class="punctuation">!((</span><span class="name">a</span><span class="punctuation">,</span> <span class="name">b</span><span class="punctuation">)</span> <span class="punctuation">=&gt;</span> <span class="name">a</span><span class="punctuation">.</span><span class="name">duration</span> <span class="punctuation">&gt;</span> <span class="name">b</span><span class="punctuation">.</span><span class="name">duration</span><span class="punctuation">);</span>
+
+<span class="keyword">import</span> <span class="name">std</span><span class="punctuation">.</span><span class="name">stdio</span><span class="punctuation">;</span>
+<span class="comment single">// Print the 4 longest frames.
+</span><span class="keyword">foreach</span><span class="punctuation">(</span><span class="name">frame</span><span class="punctuation">;</span> <span class="name">frameArray</span><span class="punctuation">[</span><span class="literal number integer">0</span> <span class="punctuation">..</span> <span class="literal number integer">4</span><span class="punctuation">])</span>
+<span class="punctuation">{</span>
+    <span class="comment single">// In hectonanoseconds (tenths of microsecond)
+</span>    <span class="name">writeln</span><span class="punctuation">(</span><span class="name">frame</span><span class="punctuation">.</span><span class="name">duration</span><span class="punctuation">);</span>
+<span class="punctuation">}</span>
+
+<span class="comment single">// Print details about all zones in the worst frame.
+</span><span class="keyword">auto</span> <span class="name">worst</span> <span class="punctuation">=</span> <span class="name">frameArray</span><span class="punctuation">[</span><span class="literal number integer">0</span><span class="punctuation">];</span>
+<span class="keyword">foreach</span><span class="punctuation">(</span><span class="name">zone</span><span class="punctuation">;</span> <span class="name">zones</span><span class="punctuation">.</span><span class="name">filter</span><span class="punctuation">!(</span><span class="name">z</span> <span class="punctuation">=&gt;</span> <span class="name">z</span><span class="punctuation">.</span><span class="name">startTime</span> <span class="punctuation">&gt;=</span> <span class="name">worst</span><span class="punctuation">.</span><span class="name">startTime</span> <span class="punctuation">&amp;&amp;</span> <span class="name">z</span><span class="punctuation">.</span><span class="name">endTime</span> <span class="punctuation">&lt;=</span> <span class="name">worst</span><span class="punctuation">.</span><span class="name">endTime</span><span class="punctuation">))</span>
+<span class="punctuation">{</span>
+    <span class="name">writefln</span><span class="punctuation">(</span><span class="literal string">&quot;%s: %s hnsecs from %s to %s&quot;</span><span class="punctuation">,</span>
+             <span class="name">zone</span><span class="punctuation">.</span><span class="name">info</span><span class="punctuation">,</span> <span class="name">zone</span><span class="punctuation">.</span><span class="name">duration</span><span class="punctuation">,</span> <span class="name">zone</span><span class="punctuation">.</span><span class="name">startTime</span><span class="punctuation">,</span> <span class="name">zone</span><span class="punctuation">.</span><span class="name">endTime</span><span class="punctuation">);</span>
+<span class="punctuation">}</span>
+</pre>
+</div>
+<div class="section" id="features">
+<h1>Features</h1>
+<ul class="simple">
+<li>Easy to use, RAII-style API for recording profiling data.</li>
+<li>Detailed API documentation with code examples.</li>
+<li>Profile data can be analyzed in real-time within a game (between frames, or top-level
+zones)</li>
+<li>Range-based API for analyzing profile data; works with <tt class="docutils literal">std.algorithm</tt> and other
+Phobos modules.</li>
+<li>No GC usage and no internal memory allocations (user must provide memory explicitly).</li>
+<li>Designed to use as little memory as possible in heavy worloads (but it can still use
+quite a lot).</li>
+<li>No dependencies.</li>
+<li><strong>No</strong> utilities to visualize profiling data (yet).</li>
+</ul>
+</div>
+<div class="section" id="directory-structure">
+<h1>Directory structure</h1>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Directory</th>
+<th class="head">Contents</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal">./</tt></td>
+<td>This README, auxiliary files.</td>
+</tr>
+<tr><td><tt class="docutils literal">./doc</tt></td>
+<td>Documentation.</td>
+</tr>
+<tr><td><tt class="docutils literal">./source</tt></td>
+<td>Source code.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="license">
+<h1>License</h1>
+<p>Tharsis.prof is released under the terms of the
+<a class="reference external" href="http://www.boost.org/LICENSE_1_0.txt">Boost Software License 1.0</a>.
+This license allows you to use the source code in your own projects, open source
+or proprietary, and to modify it to suit your needs. However, in source
+distributions, you have to preserve the license headers in the source code and
+the accompanying license file.</p>
+<p>Full text of the license can be found in file <tt class="docutils literal">LICENSE_1_0.txt</tt> and is also
+displayed here:</p>
+<pre class="literal-block">
+Boost Software License - Version 1.0 - August 17th, 2003
+
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of the software and accompanying documentation covered by
+this license (the &quot;Software&quot;) to use, reproduce, display, distribute,
+execute, and transmit the Software, and to prepare derivative works of the
+Software, and to permit third-parties to whom the Software is furnished to
+do so, all subject to the following:
+
+The copyright notices in the Software and this entire statement, including
+the above license grant, this restriction and the following disclaimer,
+must be included in all copies of the Software, in whole or in part, and
+all derivative works of the Software, unless such copies or derivative
+works are solely in the form of machine-executable object code generated by
+a source language processor.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+</pre>
+</div>
+<div class="section" id="credits">
+<h1>Credits</h1>
+<p>Tharsis.prof was created by Ferdinand Majerech aka Kiith-Sa kiithsacmp[AT]gmail.com .</p>
+<p>Tharsis.prof was made with Vim and DMD on Linux Mint as a frame profiling library for the
+<a class="reference external" href="http://www.dlang.org">D programming language</a>. See more D libraries and projects at
+<a class="reference external" href="http://code.dlang.org">code.dlang.org</a>.</p>
+</div>
+</div>
+</body>
+</html>
