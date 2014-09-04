@@ -1,0 +1,17 @@
+{
+    "name": "frameprof",
+    "description": "Frame profiler library for games",
+    "authors": [ "Ferdinand Majerech" ],
+    "libs": [],
+    "importPaths": ["source"],
+    "license": "Boost 1.0",
+    "homepage": "https://github.com/kiith-sa/frameprof",
+    "copyright": "Copyright © 2014, Ferdinand Majerech",
+
+    "buildTypes":
+    {
+        "debug": { "buildOptions": ["debugMode", "debugInfoC"] },
+        "release": { "buildOptions": ["releaseMode", "optimize", "inline", "noBoundsCheck"] },
+        "profile": { "buildOptions": ["releaseMode", "optimize", "noBoundsCheck", "debugInfoC"] },
+    },
+}
