@@ -1,0 +1,16 @@
+Ddoc
+
+$(P
+This is the complete API documentation for Tharsis.prof. It describes all classes,
+methods and global functions provided by the library, and includes code examples.
+)
+
+$(P
+Although each Tharsis.prof module is documented on a separate page, you don't need to import
+individual modules. Importing the $(I tharsis.prof) "package module" automatically imports
+all Tharsis.prof functionality.
+)
+
+Macros:
+    TITLE=$(PROJECT_NAME) $(PROJECT_VERSION) API documentation
+
