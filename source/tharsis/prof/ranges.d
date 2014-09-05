@@ -466,7 +466,7 @@ ZoneRange!EventRange zoneRange(const(ubyte)[] profileData) @safe pure nothrow @n
  *
  *
  * ForwardRange of ZoneData ordered by $(I end time).
- * Doesn't allocate any memory.
+ * Doesn't allocate any heap memory.
  *
  *
  * If profile data is incomplete (e.g. because the Profiler ran out of assigned memory in
@@ -766,7 +766,7 @@ EventRange eventRange(const(ubyte)[] profileData) @safe pure nothrow @nogc
  * EventRange is a 'low-level' range to base other ranges or structures (such as
  * ZoneRange) on top of.
  *
- * Doesn't allocate any memory.
+ * Doesn't allocate any heap memory.
  */
 struct EventRange
 {
@@ -916,7 +916,7 @@ unittest
 
     // Get a range of only the events with start time between 1000 and 5000 (hectonanoseconds)
     //
-    // This doesn't filter anything or allocate memory; filtering only happens once the
+    // This doesn't filter anything or allocate; filtering only happens once the
     // range is iterated over (but if we did want to do the filtering right now, e.g. to
     // get an array of filtered results, we'd suffix this with ".array")
     auto filtered = events.filter!(e => e.startTime > 1500 && e.startTime < 2000);

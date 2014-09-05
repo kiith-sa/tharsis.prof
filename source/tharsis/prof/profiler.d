@@ -12,7 +12,7 @@
  *
  * Realtime:
  *
- * Recording is very lightweight, without any complicated logic or memory allocations.
+ * Recording is very lightweight, without any complicated logic or heap allocations.
  * This allows to use Tharsis-prof as a 'short-term _profiler' that can record profiling
  * data over the duration of a few frames and be detect bottlenecks in real time. Game
  * code can then react, for example by disabling resource intensive nonessential features
@@ -256,7 +256,7 @@ enum EventID: ubyte
  * Profiler writes profiling data into a byte buffer passed to Profiler constructor by the
  * user. Once there is not enough space to write any more profiling events, the profiler
  * quietly ignores any events (this can be checked by outOfSpace()). Profiler $(B never
- * allocates memory) by itself.
+ * allocates heap memory) by itself.
  *
  * Recorded data can be accessed at any time through profileData() and analyzed with help
  * of EventRange, ZoneRange and other tharsis.prof utilities. reset() can be used to
@@ -326,7 +326,7 @@ private:
 public:
     /** Construct a Profiler writing profiling data to specified buffer.
      *
-     * Profiler doesn't allocate any memory. It will write profiling data into given
+     * Profiler doesn't allocate heap memory. It will write profiling data into given
      * buffer until it runs out of space, at which point it will silently stop profiling
      * (this can be detected by outOfSpace() ).
      *

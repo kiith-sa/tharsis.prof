@@ -107,7 +107,7 @@ Features
   zones)
 * Range-based API for analyzing profile data; works with ``std.algorithm`` and other
   Phobos modules.
-* No GC usage and no internal memory allocations (user must provide memory explicitly).
+* No GC usage and no internal heap allocations (user must provide memory explicitly).
 * Designed to use as little memory as possible in heavy worloads (but it can still use
   quite a lot).
 * No dependencies.
