@@ -666,7 +666,6 @@ unittest
         writeln(zone.duration);
     }
 }
-// XXX XXX XXX A BLOG POST EXPLAINING FRAMEPROF AND SHOWING THIS EXAMPLE
 ///
 unittest
 {
