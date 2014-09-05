@@ -282,7 +282,7 @@ enum EventID: ubyte
  * rather quickly. The lowest memory overhead of Profiler is around 550 kiB per hour, but
  * with 10000 zones at 120 FPS the overhead is going to be around 14 MiB $(B per second).
  */
-class Profiler
+final class Profiler
 {
     /// Diagnostics used to profile the profiler.
     struct Diagnostics
