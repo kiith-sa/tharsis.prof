@@ -130,6 +130,10 @@ import std.exception;
 //       or 4 bytes)). Note that we're optimizing for worst-case (many zones per frame) -
 //       extra RAM overhead in light workloads is not a problem, but in heavy ones we want
 //       to decrease memory usage as much as possible.
+//       Better: EventID should use only 5 bits. The other 3 should specify the number
+//       of bytes to specify time in e.g. a ZoneStart or ZoneEnd.
+//       This way we can have up to 32 event ID and up to 8-byte time lengths. Time span
+//       events would became obsolete.
 // TODO: External viewer. Try to support real-time viewing (send data through socket). Also
 //       dumping/loading profiling data, probably with YAML, but core FrameProf shouldn't
 //       have a D:YAML dependency.
