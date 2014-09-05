@@ -7,11 +7,12 @@ Tharsis.prof
 Introduction
 ------------
 
-Tharsis.prof is an open source frame-based profiler library for the D programming
-language. A frame-based profiler keeps track of overhead separately for individual frames
-in a game. This is useful to track down issues with inconsistent overhead (such as lag
-that appears only once in a few seconds) that are hard to detect with conventional
-profilers.
+Tharsis.prof is an open source `frame-based profiler
+<http://defenestrate.eu/2014/09/05/frame_based_game_profiling.html>`_ library for the
+D programming language. A frame-based profiler keeps track of overhead separately for
+individual frames in a game. This is useful to track down issues with inconsistent
+overhead (such as lag that appears only once in a few seconds) that are hard to detect
+with conventional profilers.
 
 Tharsis.prof is designed to be easy to use and lightweight. See the example below to get
 started.
@@ -102,14 +103,17 @@ Features
 --------
 
 * Easy to use, RAII-style API for recording profiling data.
-* Detailed API documentation with code examples.
-* Profile data can be analyzed in real-time within a game (between frames, or top-level
+* Detailed `API documentation <http://defenestrate.eu/docs/tharsis.prof/index.html>`_
+  with code examples.
+* Profile data can be analyzed in real time within a game (between frames, or top-level
   zones)
-* Range-based API for analyzing profile data; works with ``std.algorithm`` and other
-  Phobos modules.
+* `Range-based API
+  <http://defenestrate.eu/2014/09/05/frame_based_profiling_with_d_ranges.html>`_ for
+  analyzing profile data; works with ``std.algorithm`` and other Phobos modules.
 * No GC usage and no internal heap allocations (user must provide memory explicitly).
-* Designed to use as little memory as possible in heavy worloads (but it can still use
-  quite a lot).
+* Designed to use `as little memory as possible
+  <http://defenestrate.eu/2014/09/05/optimizing_memory_usage_of_a_frame_based_profiler.html>`_
+  in heavy workloads (but it can still use quite a lot).
 * Uses high-precision clocks (hectonanosecond (tenth of microsecond) precision).
 * No dependencies.
 * **No** utilities to visualize profiling data (yet).

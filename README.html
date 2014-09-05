@@ -343,11 +343,11 @@ ul.auto-toc {
 
 <div class="section" id="introduction">
 <h1>Introduction</h1>
-<p>Tharsis.prof is an open source frame-based profiler library for the D programming
-language. A frame-based profiler keeps track of overhead separately for individual frames
-in a game. This is useful to track down issues with inconsistent overhead (such as lag
-that appears only once in a few seconds) that are hard to detect with conventional
-profilers.</p>
+<p>Tharsis.prof is an open source <a class="reference external" href="http://defenestrate.eu/2014/09/05/frame_based_game_profiling.html">frame-based profiler</a> library for the
+D programming language. A frame-based profiler keeps track of overhead separately for
+individual frames in a game. This is useful to track down issues with inconsistent
+overhead (such as lag that appears only once in a few seconds) that are hard to detect
+with conventional profilers.</p>
 <p>Tharsis.prof is designed to be easy to use and lightweight. See the example below to get
 started.</p>
 <p>Note that this is still a <strong>work in progress</strong>. Its API is not stable and there might be
@@ -422,14 +422,16 @@ compatibility <strong>breaking changes</strong> in future.</p>
 <h1>Features</h1>
 <ul class="simple">
 <li>Easy to use, RAII-style API for recording profiling data.</li>
-<li>Detailed API documentation with code examples.</li>
-<li>Profile data can be analyzed in real-time within a game (between frames, or top-level
+<li>Detailed <a class="reference external" href="http://defenestrate.eu/docs/tharsis.prof/index.html">API documentation</a>
+with code examples.</li>
+<li>Profile data can be analyzed in real time within a game (between frames, or top-level
 zones)</li>
-<li>Range-based API for analyzing profile data; works with <tt class="docutils literal">std.algorithm</tt> and other
-Phobos modules.</li>
-<li>No GC usage and no internal memory allocations (user must provide memory explicitly).</li>
-<li>Designed to use as little memory as possible in heavy worloads (but it can still use
-quite a lot).</li>
+<li><a class="reference external" href="http://defenestrate.eu/2014/09/05/frame_based_profiling_with_d_ranges.html">Range-based API</a> for
+analyzing profile data; works with <tt class="docutils literal">std.algorithm</tt> and other Phobos modules.</li>
+<li>No GC usage and no internal heap allocations (user must provide memory explicitly).</li>
+<li>Designed to use <a class="reference external" href="http://defenestrate.eu/2014/09/05/optimizing_memory_usage_of_a_frame_based_profiler.html">as little memory as possible</a>
+in heavy workloads (but it can still use quite a lot).</li>
+<li>Uses high-precision clocks (hectonanosecond (tenth of microsecond) precision).</li>
 <li>No dependencies.</li>
 <li><strong>No</strong> utilities to visualize profiling data (yet).</li>
 </ul>
