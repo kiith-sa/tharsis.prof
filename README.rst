@@ -110,6 +110,7 @@ Features
 * No GC usage and no internal heap allocations (user must provide memory explicitly).
 * Designed to use as little memory as possible in heavy worloads (but it can still use
   quite a lot).
+* Uses high-precision clocks (hectonanosecond (tenth of microsecond) precision).
 * No dependencies.
 * **No** utilities to visualize profiling data (yet).
 
