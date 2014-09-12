@@ -210,7 +210,10 @@ public:
      *
      * Params:
      *
-     * profiler = Profiler to record the zone with.
+     * profiler = Profiler to record the zone with. If $(D null), the Zone is silently
+     *            ignored without recording anything. This is useful for 'optional
+     *            profiling', where the instrumenting code (Zones) is always present in
+     *            the code but only activated when a Profiler exists.
      * info     = Zone information string. Used to differentiate between zones when
      *            parsing and accumulating profile data. Can be the 'name' of the zone,
      *            possibly with some extra _info (e.g. "frame" for the entire frame or
@@ -221,13 +224,33 @@ public:
     {
         assert(info.length <= ubyte.max, "Zone info strings can be at most 255 bytes long");
         profiler_  = profiler;
-        nestLevel_ = profiler_.zoneStartEvent(info);
+        if(profiler_ !is null)
+        {
+            nestLevel_ = profiler_.zoneStartEvent(info);
+        }
     }
 
     /// Destructor. Emits the zone end event with the Profiler.
     ~this() @safe nothrow
     {
-        profiler_.zoneEndEvent(nestLevel_);
+        if(profiler_ !is null)
+        {
+            profiler_.zoneEndEvent(nestLevel_);
+        }
+    }
+}
+unittest
+{
+    // Test 'null profiler' (Zone is automatically ignored if a null profiler is passed.)
+    foreach(i; 0 .. 10)
+    {
+        auto frameZone = Zone(null, "frame");
+        {
+            auto renderingZone = Zone(null, "rendering");
+        }
+        {
+            auto physicsZone = Zone(null, "physics");
+        }
     }
 }
 
