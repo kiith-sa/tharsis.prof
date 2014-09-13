@@ -901,8 +901,8 @@ unittest
     auto storage  = new ubyte[Profiler.maxEventBytes + 2048];
     auto profiler = new Profiler(storage);
 
-    // Simulate 16 'frames'
-    foreach(frame; 0 .. 16)
+    // Simulate 8 'frames'
+    foreach(frame; 0 .. 8)
     {
         Zone topLevel = Zone(profiler, "frame");
 
