@@ -252,6 +252,9 @@ auto accumulatedZoneRange(alias accumulate, alias match = defaultMatch, ZRange)
 unittest
 {
     // Count the number of times each zone was entered.
+
+    import tharsis.prof;
+
     auto storage  = new ubyte[Profiler.maxEventBytes + 128];
     auto profiler = new Profiler(storage);
 
@@ -300,6 +303,8 @@ unittest
 
     // This example also uses C malloc/free, std.typecons.scoped and std.container.Array
     // to show how to do this without using the GC.
+
+    import tharsis.prof;
 
     const storageLength = Profiler.maxEventBytes + 2048;
 
@@ -376,6 +381,8 @@ unittest
 
     // This example also uses C malloc/free, std.typecons.scoped and std.container.Array
     // to show how to do this without using the GC.
+
+    import tharsis.prof;
 
     const storageLength = Profiler.maxEventBytes + 2048;
 
@@ -639,6 +646,8 @@ unittest
     // Filter zones based on the info string. Useful to determine durations of only
     // certain zones.
 
+    import tharsis.prof;
+
     auto storage  = new ubyte[Profiler.maxEventBytes + 2048];
     auto profiler = new Profiler(storage);
 
@@ -674,6 +683,8 @@ unittest
 
     // This example also uses C malloc/free, std.typecons.scoped and std.container.Array
     // to show how to do this without using the GC.
+
+    import tharsis.prof;
 
     const storageLength = Profiler.maxEventBytes + 1024 * 1024 * 2;
 
@@ -884,6 +895,8 @@ unittest
 {
     // Filter zones based on the info string. Useful to determine durations of only
     // certain zones.
+
+    import tharsis.prof;
 
     auto storage  = new ubyte[Profiler.maxEventBytes + 2048];
     auto profiler = new Profiler(storage);
