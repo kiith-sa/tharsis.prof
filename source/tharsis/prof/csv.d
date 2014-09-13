@@ -27,9 +27,13 @@ import std.typetuple;
  *          Example output ranges: Appender!string or std.stdio.File.lockingTextWriter.
  *
  * No heap memory will be allocated $(B if) output does not allocate.
+ *
+ * Throws:
+ *
+ * Whatever (if anything) output throws on failure to write more data to it.
  */
 void writeCSVTo(ERange, ORange)(ERange events, ORange output)
-    @trusted nothrow
+    @trusted
     if(isInputRange!ERange && is(ElementType!ERange == Event) && isCharOutput!ORange)
 {
     foreach(event; events) with(event)
