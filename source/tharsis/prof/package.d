@@ -9,3 +9,4 @@ module tharsis.prof;
 public:
     import tharsis.prof.profiler;
     import tharsis.prof.ranges;
+    import tharsis.prof.csv;
