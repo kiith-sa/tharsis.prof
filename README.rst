@@ -111,9 +111,8 @@ Features
   <http://defenestrate.eu/2014/09/05/frame_based_profiling_with_d_ranges.html>`_ for
   analyzing profile data; works with ``std.algorithm`` and other Phobos modules.
 * No GC usage and no internal heap allocations (user must provide memory explicitly).
-* Designed to use `as little memory as possible
-  <http://defenestrate.eu/2014/09/05/optimizing_memory_usage_of_a_frame_based_profiler.html>`_
-  in heavy workloads (but it can still use quite a lot).
+* Designed to use as little memory as possible in heavy workloads (but it can still use 
+  quite a lot). *Memory usage in light workloads has been improved as well*.
 * Uses high-precision clocks (hectonanosecond (tenth of microsecond) precision).
 * No dependencies.
 * **No** utilities to visualize profiling data (yet).
