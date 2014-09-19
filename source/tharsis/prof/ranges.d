@@ -857,13 +857,19 @@ private:
         assert(profileData_.length >= timeBytes, 
                "Invalid profiling data; not long enough to store expected time gap bytes");
 
-        foreach(b; 0 .. timeBytes)
+        // Parses 'time bytes' each encoding 7 bits of a time span value
+        void parseTimeBytes(uint count) nothrow @nogc
         {
-            assert(profileData_.front != 0, "Time bytes must not be 0");
-            front_.startTime += cast(ulong)(profileData_.front() & timeByteMask) 
-                                << (b * timeByteBits);
-            profileData_.popFront();
+            foreach(b; 0 .. count)
+            {
+                assert(profileData_.front != 0, "Time bytes must not be 0");
+                front_.startTime += cast(ulong)(profileData_.front() & timeByteMask) 
+                                    << (b * timeByteBits);
+                profileData_.popFront();
+            }
         }
+
+        parseTimeBytes(timeBytes);
         front_.info = null;
 
         with(EventID) switch(front_.id)
@@ -875,13 +881,7 @@ private:
                 // result as this code), but allow 'disjoint' checkpoints that change the
                 // 'current time' in future.
                 front_.startTime = 0;
-                foreach(b; 0 .. checkpointByteCount)
-                {
-                    assert(profileData_.front != 0, "Time bytes must not be 0");
-                    front_.startTime += cast(ulong)(profileData_.front() & timeByteMask) 
-                                        << (b * timeByteBits);
-                    profileData_.popFront();
-                }
+                parseTimeBytes(checkpointByteCount);
                 break;
             // Info is followed by an info string.
             case Info:

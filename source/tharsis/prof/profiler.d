@@ -449,13 +449,7 @@ public:
 
         auto time = lastTime_ - startTime_;
         // Add 8 time bytes (can represent 128 ** 8 hnsecs)
-        foreach(b; 0 .. checkpointByteCount)
-        {
-            // The last bit ensures the resulting byte is never 0
-            profileData_[profileDataUsed_++] =
-                timeByteLastBit | cast(ubyte)(time & timeByteMask);
-            time >>= timeByteBits;
-        }
+        foreach(b; 0 .. checkpointByteCount) { time = addTimeByte(time); }
     }
 
     /** Reset the profiler.
@@ -485,7 +479,19 @@ public:
     }
 
 private:
-    /** Write an event ID and bytes specifying the time gap since the last event.
+    /* Add one byte of a 'time byte' sequence that encodes a time span.
+     *
+     * Takes the time we're encoding and returns remainder of that time that is not yet
+     * encoded into time btyes (time / 128).
+     */
+    ulong addTimeByte(ulong time) @safe pure nothrow @nogc 
+    {
+        // The last bit ensures the resulting byte is never 0
+        profileData_[profileDataUsed_++] = timeByteLastBit | cast(ubyte)(time & timeByteMask);
+        return time >> timeByteBits;
+    }
+
+    /* Write an event ID and bytes specifying the time gap since the last event.
      *
      * Event ID is packed into a single byte together with the count of time gap bytes
      * (5 lower bits for event ID, 3 higher bits for byte count) This byte is followed
@@ -503,10 +509,7 @@ private:
         // represent 128 ** 2, etc.)
         while(timeLeft > 0)
         {
-            // The last bit ensures the resulting byte is never 0
-            profileData_[profileDataUsed_++] =
-                timeByteLastBit | cast(ubyte)(timeLeft & timeByteMask);
-            timeLeft >>= timeByteBits;
+            timeLeft = addTimeByte(timeLeft);
             ++byteCount;
             if(byteCount >= 8)
             {
