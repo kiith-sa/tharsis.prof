@@ -124,16 +124,6 @@ import std.exception;
 //       be represented by a 'Compressed' EventID followed by length of compressed data.
 // TODO: Compress info strings with a short string compressor like shoco or smaz (both at
 //       github) (of course, will need to convert whatever we use to D).
-// TODO: Determine the overhead of time spans. Maybe we need more steps (e.g. time spans
-//       for all powers of 2 from 2^8 to 2^32, a time span followed by a multiplier 
-//       (e.g. 256 x number) or a time span that includes an explicit length (may be 2, 3
-//       or 4 bytes)). Note that we're optimizing for worst-case (many zones per frame) -
-//       extra RAM overhead in light workloads is not a problem, but in heavy ones we want
-//       to decrease memory usage as much as possible.
-//       Better: EventID should use only 5 bits. The other 3 should specify the number
-//       of bytes to specify time in e.g. a ZoneStart or ZoneEnd.
-//       This way we can have up to 32 event ID and up to 8-byte time lengths. Time span
-//       events would became obsolete.
 // TODO: External viewer. Try to support real-time viewing (send data through socket). Also
 //       dumping/loading profiling data, probably with YAML, but core FrameProf shouldn't
 //       have a D:YAML dependency.
@@ -210,19 +200,20 @@ public:
      *
      * Params:
      *
-     * profiler = Profiler to record the zone with. If $(D null), the Zone is silently
-     *            ignored without recording anything. This is useful for 'optional
-     *            profiling', where the instrumenting code (Zones) is always present in
-     *            the code but only activated when a Profiler exists.
-     * info     = Zone information string. Used to differentiate between zones when
-     *            parsing and accumulating profile data. Can be the 'name' of the zone,
-     *            possibly with some extra _info (e.g. "frame" for the entire frame or
-     *            "batch 5" for the fifth draw batch). $(B Must not) be longer than 255
-     *            characters.
+     * profiler = Profiler to record into. If $(D null), the zone is ignored. This enables
+     *            'optional profiling', where instrumenting code (zones) is always present
+     *            in the code but only activated when a Profiler exists.
+     * info     = Zone information string. Used to recognize zones when parsing and
+     *            accumulating profile data. Can be the 'name' of the zone, possibly with
+     *            some extra _info (e.g. "frame": entire frame or "batch 5": fifth draw
+     *            batch). $(B Must not) be longer than 255 characters and $(B must not)
+     *            contain zero ($(D '\0')) characters.
      */
-    this(Profiler profiler, string info) @safe nothrow
+    this(Profiler profiler, string info) @trusted nothrow
     {
         assert(info.length <= ubyte.max, "Zone info strings can be at most 255 bytes long");
+        assert(!(cast(ubyte[])info).canFind(0), "Zone info strings must not contain '\\0'");
+
         profiler_  = profiler;
         if(profiler_ !is null)
         {
@@ -254,27 +245,50 @@ unittest
     }
 }
 
-
 /** Types of events recorded by Profiler.
- *
- * Mapped directly to byte values of these events in profile data.
  */
 enum EventID: ubyte
 {
-    // A time span of 256 hnsecs (25.6 usecs).
-    TimeSpan      = 't',
-    // A time span of 256 * 256 hnsecs (6.5536 msecs).
-    LongTimeSpan  = 'T',
-    // Zone start. Followed by a byte specifing hnsecs elapsed since last time span.
-    ZoneStart     = 's',
-    // Zone end. Followed by a byte specifing hnsecs elapsed since last time span.
-    ZoneEnd       = 'e',
-    // Info string. Followed by a byte: string length and a string of up to 255 chars.
-    Info          = 'i',
+    // Zone start.
+    ZoneStart     = 1,
+    // Zone end.
+    ZoneEnd       = 2,
+    // Info string. EventID/time bytes are followed by a string length byte and a string 
+    // of up to 255 chars.
+    Info          = 3,
     // Frame divider event (separates frames).
-    Frame         = 'f'
+    Frame         = 4,
 }
 
+// A global array with all event IDs
+import std.traits;
+package immutable allEventIDs = [EnumMembers!EventID];
+static assert(!allEventIDs.canFind!(e => e > eventIDMask),
+              "Too high EventID value; last 3 bits are reserved for byte count");
+
+/* All EventID values must be 5-bit integers, with 0 reserved for 'Checkpoint' EventID
+ * which is the only zero byte value that may appear in profiling data (this allows 
+ * 'going backwards' in profile data).
+ *
+ * In profile data, an EventID is packed into a byte with a 3-bit 'byteCount' value,
+ * which specifies the number of bytes immediately after the EventID/byteCount byte
+ * used to encode time elapsed since the last event. Each of these bytes consists of
+ * 7 bits of the 'time elapsed' value (first byte - lowest 7 bits, second byte - higher
+ * 7 bits, etc. with as many bytes as there are (at most 7)). The highest bit is always
+ * set to 1 (to ensure the byte zero).
+ */
+
+// Number of bits in event ID bytes storing the event ID itself. Other bytes store 'byteCount'.
+package enum eventIDBits = 5;
+// Mask of the bits in an event ID byte that store the event ID itself.
+package enum eventIDMask = 0b00011111;
+
+// Number of bits in a time byte used to store the actual time value.
+package enum timeByteBits = 7;
+// Mask of the bits in a time byte used to store the actual time value.
+package enum timeByteMask = 0b01111111;
+// Mask to set the highest bit of a time byte to 1.
+package enum timeByteLastBit = 0b10000000;
 
 /** Records profiling events into user-specified buffer.
  *
@@ -306,16 +320,14 @@ enum EventID: ubyte
  * Memory consumption:
  *
  * Depending on the worload and number of zones, Profiler can eat through assigned memory
- * rather quickly. The lowest memory overhead of Profiler is around 550 kiB per hour, but
- * with 10000 zones at 120 FPS the overhead is going to be around 14 MiB $(B per second).
+ * rather quickly.  With 10000 zones at 120 FPS the overhead is going to be around 14 MiB
+ * $(B per second).
  */
 final class Profiler
 {
     /// Diagnostics used to profile the profiler.
     struct Diagnostics
     {
-        size_t timeSpanCount;
-        size_t longTimeSpanCount;
         size_t zoneStartCount;
         size_t zoneEndCount;
         size_t infoCount;
@@ -341,11 +353,6 @@ private:
 
     // Start time of the last event (as returned by std.datetime.Clock.currStdTime()).
     ulong lastTime_;
-
-    // Length of a TimeSpan event in hectonanoseconds.
-    enum timeSpan = 256;
-    // Length of a LongTimeSpan event in hectonanoseconds.
-    enum longTimeSpan = 256 * timeSpan;
 
     // Diagnostics about the profiler, such as which evenets are the most common.
     Diagnostics diagnostics_;
@@ -441,11 +448,66 @@ public:
     }
 
 private:
-    /* Emit a zone start event.
+    /** Write an event ID and bytes specifying the time gap since the last event.
      *
-     * Marks entering a zone. May add time span events to record time since the last event
-     * and includes a short time duration (representable in a single ubyte) to specify
-     * precise time since the last time span.
+     * Event ID is packed into a single byte together with the count of time gap bytes
+     * (5 lower bits for event ID, 3 higher bits for byte count) This byte is followed
+     * by a number of time gap bytes. Each time gap byte encodes 7 bits of the time gap
+     * (the topmost bit is always 1 to ensure time gap bytes are never 0 (to avoid 
+     * confusion with checkpoint bytes, which are 0)). The first time gap byte stores the
+     * lowest 7 bits of the time gap, second stores the next 7 bits, etc.
+     */
+    void eventWithTime(EventID id, ulong timeLeft) @trusted pure nothrow @nogc
+    {
+        const idIndex = profileDataUsed_++;
+        size_t byteCount = 0;
+
+        // Add as many time bytes as needed (1 byte can represent 128 hnsecs, 2 bytes can
+        // represent 128 ** 2, etc.)
+        while(timeLeft > 0)
+        {
+            // The last bit ensures the resulting byte is never 0
+            profileData_[profileDataUsed_++] =
+                timeByteLastBit | cast(ubyte)(timeLeft & timeByteMask);
+            timeLeft >>= timeByteBits;
+            ++byteCount;
+            if(byteCount >= 8)
+            {
+                assert(false, "Tharsis.prof does not support time gaps over 228 years");
+            }
+        }
+        const ubyte idByte = cast(ubyte)(id | (byteCount << eventIDBits));
+        profileData_[idIndex] = idByte;
+        assert((idByte & eventIDMask) == id,  "EventID saved incorrectly");
+        assert((idByte >> eventIDBits) == byteCount, "byte count saved incorrectly");
+    }
+    unittest
+    {
+        import std.array;
+        import std.stdio;
+
+        writeln("time gap recording unittest");
+
+        ubyte[4096] storage;
+        auto profiler = new Profiler(storage[]);
+        const ulong time = 33457812484;
+        profiler.eventWithTime(EventID.ZoneStart, time);
+
+        auto data = profiler.profileData;
+        ulong recordedTime = 0;
+        const timeBytes = data.front >> eventIDBits;
+
+        data.popFront();
+        foreach(b; 0 .. timeBytes)
+        {
+            recordedTime += cast(ulong)(data.front() & timeByteMask) << (b * timeByteBits);
+            data.popFront();
+        }
+
+        assert(recordedTime == time);
+    }
+
+    /* Emit a zone start event, when code enters a zone.
      *
      * Params:
      *
@@ -459,29 +521,20 @@ private:
     uint zoneStartEvent(const string info) @safe nothrow
     {
         const time = Clock.currStdTime.assumeWontThrow;
-        while(time - lastTime_ >= longTimeSpan) { longTimeSpanEvent(); }
-        while(time - lastTime_ >= timeSpan)     { timeSpanEvent(); }
 
-        const timeLeft = time - lastTime_;
-        assert(timeLeft <= ubyte.max, "Time left after time span events must fit into a byte");
+        auto timeLeft = time - lastTime_;
         lastTime_ = time;
 
         if(outOfSpace) { return ++zoneNestLevel_; }
         ++diagnostics_.zoneStartCount;
 
-        profileData_[profileDataUsed_++] = EventID.ZoneStart;
-        profileData_[profileDataUsed_++] = cast(ubyte)timeLeft;
-
+        eventWithTime(EventID.ZoneStart, timeLeft);
         infoEvent(info);
 
         return ++zoneNestLevel_;
     }
 
-    /* Emit a zone end event.
-     *
-     * Marks exiting a zone. May add time span events to record time since the last event
-     * and includes a short time duration (representable in a single ubyte) to specify
-     * precise time since the last time span.
+    /* Emit a zone end event, when code exits a zone.
      *
      * Params:
      *
@@ -495,63 +548,26 @@ private:
                "Zones must be hierarchical; detected a zone that ends after its parent");
         --zoneNestLevel_;
         const time = Clock.currStdTime.assumeWontThrow;
-        while(time - lastTime_ >= longTimeSpan) { longTimeSpanEvent(); }
-        while(time - lastTime_ >= timeSpan)     { timeSpanEvent(); }
 
         const timeLeft = time - lastTime_;
-        assert(timeLeft <= ubyte.max, "Time left after time span events must fit into a byte");
         lastTime_ = time;
         if(outOfSpace) { return; }
         ++diagnostics_.zoneEndCount;
 
-        profileData_[profileDataUsed_++] = EventID.ZoneEnd;
-        profileData_[profileDataUsed_++] = cast(ubyte)timeLeft;
-    }
-
-    // The reason for using fixed-size 1 byte timespan events instead of 3 or 5 byte 
-    // ID + size is to minimize memory usage with the heaviest workloads, when zones
-    // happen almost as often or more often than every 255 hectonanoseconds which is the
-    // maximum time span representable by the time delay byte in a ZoneStart/ZoneEnd
-    // event.
-
-    /* Emit a time span event.
-     *
-     * Time span represents a time duration (Profiler.timeSpan in hectonanoseconds)
-     * between other events.
-     */
-    void timeSpanEvent() @safe pure nothrow @nogc
-    {
-        lastTime_ += timeSpan;
-        if(outOfSpace) { return; }
-        ++diagnostics_.timeSpanCount;
-        profileData_[profileDataUsed_++] = EventID.TimeSpan;
-    }
-
-    /* Emit a long time span event.
-     *
-     * Long time span represents a time duration (Profiler.longTimeSpan in hectonanoseconds)
-     * between other events.
-     */
-    void longTimeSpanEvent() @safe pure nothrow @nogc
-    {
-        lastTime_ += longTimeSpan;
-        if(outOfSpace) { return; }
-        ++diagnostics_.longTimeSpanCount;
-        profileData_[profileDataUsed_++] = EventID.LongTimeSpan;
+        eventWithTime(EventID.ZoneEnd, timeLeft);
     }
 
     /* Emit an info event.
      *
-     * An info event stores character data (at most 255 bytes). Currently info events are
-     * used to 'describe' immediately previous events (e.g. a zone start event directly
-     * followed by an info event describing it).
+     * This event stores character data (at most 255 bytes). Currently info events are
+     * only used to 'describe' immediately previous zone start events.
      */
     void infoEvent(const string info) @trusted pure nothrow @nogc
     {
         assert(info.length <= ubyte.max, "Zone info strings can be at most 255 bytes long");
         if(outOfSpace) { return; }
         ++diagnostics_.infoCount;
-        profileData_[profileDataUsed_++] = EventID.Info;
+        eventWithTime(EventID.Info, 0);
         profileData_[profileDataUsed_++] = cast(ubyte)(info.length);
         profileData_[profileDataUsed_ .. profileDataUsed_ + info.length] = cast(ubyte[])info[];
         profileDataUsed_ += info.length;
@@ -571,8 +587,8 @@ unittest
         {
             auto startTime = Clock.currStdTime().assumeWontThrow;
             profiler.frameEvent();
-            // Wait long enough to trigger a long time span event
-            while(Clock.currStdTime().assumeWontThrow - startTime <= Profiler.longTimeSpan)
+            // Wait long enough to store the time gap in >2 bytes.
+            while(Clock.currStdTime().assumeWontThrow - startTime <= 65536)
             {
                 continue;
             }
@@ -581,8 +597,8 @@ unittest
                 auto zone11 = Zone(profiler, "zone11");
             }
             startTime = Clock.currStdTime().assumeWontThrow;
-            // Wait long enough to trigger a short time span event
-            while(Clock.currStdTime().assumeWontThrow - startTime <= Profiler.timeSpan)
+            // Wait long enough to store the time gap in >1 bytes.
+            while(Clock.currStdTime().assumeWontThrow - startTime <= 256)
             {
                 continue;
             }
@@ -602,9 +618,6 @@ unittest
         foreach(i; 0 .. 3) with(EventID)
         {
             assert(evts.front.id == Frame);        evts.popFront();
-            assert(evts.front.id == LongTimeSpan); evts.popFront();
-            // Account for any extra time the unittest could take.
-            while([TimeSpan, LongTimeSpan].canFind(evts.front.id)) { evts.popFront(); }
 
             assert(evts.front.id == ZoneStart);                          evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone1"); evts.popFront();
@@ -612,10 +625,6 @@ unittest
             assert(evts.front.id == ZoneStart);                           evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone11"); evts.popFront();
             assert(evts.front.id == ZoneEnd);                             evts.popFront();
-
-            // Account for any extra time the unittest could take, but don't expect long time spans.
-            assert(evts.front.id == TimeSpan); evts.popFront();
-            while(evts.front.id == TimeSpan) { evts.popFront(); }
 
             assert(evts.front.id == ZoneStart);                           evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone12"); evts.popFront();

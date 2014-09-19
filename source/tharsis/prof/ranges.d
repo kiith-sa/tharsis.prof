@@ -63,7 +63,6 @@ struct ZoneData
  */
 struct AccumulatedZoneData(alias accumulate)
 {
-    import std.traits;
     /// The 'base' ZoneData; startTime and duration are sums of accumulated ZoneData values.
     ZoneData zoneData;
     alias zoneData this;
@@ -263,15 +262,15 @@ unittest
         import std.datetime;
         auto startTime = Clock.currStdTime();
         profiler.frameEvent();
-        // Wait long enough to trigger a long time span event
-        while(Clock.currStdTime() - startTime <= Profiler.longTimeSpan) { continue; }
+        // Wait long enough so the time gap is represented by >2 bytes.
+        while(Clock.currStdTime() - startTime <= 65536) { continue; }
         auto zone1 = Zone(profiler, "zone1");
         {
             auto zone11 = Zone(profiler, "zone11");
         }
         startTime = Clock.currStdTime();
-        // Wait long enough to trigger a short time span event
-        while(Clock.currStdTime() - startTime <= Profiler.timeSpan) { continue; }
+        // Wait long enough so the time gap is represented by >1 bytes.
+        while(Clock.currStdTime() - startTime <= 255) { continue; }
         {
             auto zone12 = Zone(profiler, "zone12");
         }
@@ -618,8 +617,6 @@ private:
 
             with(EventID) final switch(event.id)
             {
-                case TimeSpan:     break;
-                case LongTimeSpan: break;
                 case Frame:        break;
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
@@ -784,12 +781,18 @@ private:
     /// Raw profile data recorded by a Profiler.
     const(ubyte)[] profileData_;
 
-    /// Start time of the current event in hectonanoseconds.
-    ulong hnsecs_;
-
     static assert(isForwardRange!EventRange, "EventRange must be a forward range");
     static assert(is(Unqual!(ElementType!EventRange) == Event),
                     "EventRange must be a range of Event");
+
+    // If empty_ is false, this is the event at the front of the range.
+    //
+    // front_.startTime is incrementally increased with each readEvent() call instead of
+    // clearing front_ completely.
+    Event front_;
+
+    // Is the range empty (last event has been popped)?
+    bool empty_;
 
 public:
 @safe pure nothrow @nogc:
@@ -804,90 +807,80 @@ public:
     this(const(ubyte)[] profileData)
     {
         profileData_ = profileData;
+        empty_ = profileData_.empty;
+        if(!empty_) { readEvent(); }
     }
 
     /// Get the current event.
     Event front() const
     {
         assert(!empty, "Can't get front of an empty range");
-        const id = frontEventID();
-
-        with(EventID) switch(id)
-        {
-            case TimeSpan, LongTimeSpan, Frame:
-                return Event(id, hnsecs_);
-            case ZoneStart, ZoneEnd:
-                assert(profileData_.length >= 2,
-                       "Invalid profiling data: zone start/end event not followed by time gap");
-                const timeGap = profileData_[1];
-                return Event(id, hnsecs_ + timeGap);
-            case Info:
-                assert(profileData_.length >= 2,
-                       "Invalid profiling data: info event not followed by string length");
-                const infoBytes = profileData_[1];
-                assert(profileData_.length >= 2 + infoBytes,
-                       "Invalid profiling data: info event not followed by info string");
-                const infoString = cast(const(char)[])profileData_[2 .. 2 + infoBytes];
-                return Event(id, hnsecs_, infoString);
-            default:
-                assert(false, "Unknown event ID");
-        }
+        return front_;
     }
 
     /// Move to the next event.
     void popFront()
     {
         assert(!empty, "Can't pop front of an empty range");
-        const id = frontEventID();
-        profileData_.popFront();
-
-        with(EventID) switch(id)
-        {
-            case TimeSpan:     hnsecs_ += Profiler.timeSpan;     return;
-            case LongTimeSpan: hnsecs_ += Profiler.longTimeSpan; return;
-            case Frame:        return;
-            case ZoneStart, ZoneEnd:
-                assert(!profileData_.empty,
-                       "Invalid profiling data: zone start/end event not followed by time gap");
-                const timeGap = profileData_.front;
-                profileData_.popFront;
-                hnsecs_ += timeGap;
-                return;
-            case Info:
-                assert(!profileData_.empty,
-                       "Invalid profiling data: info event not followed by string length");
-                const infoBytes = profileData_.front;
-                profileData_.popFront;
-                assert(profileData_.length >= infoBytes,
-                       "Invalid profiling data: info event not followed by info string");
-                profileData_ = profileData_[infoBytes .. $];
-                return;
-            default:
-                assert(false, "Unknown event ID");
-        }
+        empty_ = profileData_.empty;
+        if(!empty_) { readEvent(); }
     }
 
     /// Are there no more events?
-    bool empty() const { return profileData_.empty; }
+    bool empty() const { return empty_; }
 
     // Must be a property, isForwardRange won't work otherwise.
     /// Get a copy of the range in its current state.
     @property EventRange save() const { return this; }
 
 private:
-    /// Get the event ID of the front event.
-    EventID frontEventID() const
+    /* Read the next event from profile data.
+     *
+     * Called from constructor and popFront() to update front_.
+     */
+    void readEvent()
     {
-        const firstByte = profileData_.front;
+        assert(!profileData_.empty, "Trying to read an event from empty profile data");
+
+        front_.id = cast(EventID)(profileData_.front & eventIDMask);
         // Assert validity of the profile data.
         debug
         {
-            import std.traits;
-            bool found = false;
-            foreach(e; EnumMembers!EventID) { found = found || e == firstByte; }
-            assert(found, "Invalid profile data; expected an event ID but got something else");
+            bool found = allEventIDs.canFind(front_.id);
+            assert(found, "Invalid profiling data; expected event ID but got something else");
         }
-        return cast(EventID)firstByte;
+
+        const timeBytes = profileData_.front >> eventIDBits;
+        profileData_.popFront();
+
+        assert(profileData_.length >= timeBytes, 
+               "Invalid profiling data; not long enough to store expected time gap bytes");
+
+        foreach(b; 0 .. timeBytes)
+        {
+            assert(profileData_.front != 0, "Time bytes must not be 0");
+            front_.startTime += cast(ulong)(profileData_.front() & timeByteMask) 
+                                << (b * timeByteBits);
+            profileData_.popFront();
+        }
+        front_.info = null;
+
+        with(EventID) switch(front_.id)
+        {
+            case Frame, ZoneStart, ZoneEnd: return;
+                // Info is followed by an info string.
+            case Info:
+                assert(!profileData_.empty,
+                       "Invalid profiling data: info event not followed by string length");
+                const infoBytes = profileData_.front;
+                profileData_.popFront;
+                front_.info = cast(const(char)[])profileData_[0 .. infoBytes];
+                assert(profileData_.length >= infoBytes,
+                       "Invalid profiling data: info event not followed by info string");
+                profileData_ = profileData_[infoBytes .. $];
+                return;
+            default: assert(false, "Unknown event ID");
+        }
     }
 }
 ///
