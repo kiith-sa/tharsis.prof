@@ -617,7 +617,8 @@ private:
 
             with(EventID) final switch(event.id)
             {
-                case Frame:        break;
+                case Frame:      break;
+                case Checkpoint: break;
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
                            "Zone nesting too deep; zone stack overflow.");
@@ -868,7 +869,21 @@ private:
         with(EventID) switch(front_.id)
         {
             case Frame, ZoneStart, ZoneEnd: return;
-                // Info is followed by an info string.
+            case Checkpoint:
+                // A checkpoint contains absolute start time. 
+                // This is not really necessary ATM, (relative time would get us the same
+                // result as this code), but allow 'disjoint' checkpoints that change the
+                // 'current time' in future.
+                front_.startTime = 0;
+                foreach(b; 0 .. checkpointByteCount)
+                {
+                    assert(profileData_.front != 0, "Time bytes must not be 0");
+                    front_.startTime += cast(ulong)(profileData_.front() & timeByteMask) 
+                                        << (b * timeByteBits);
+                    profileData_.popFront();
+                }
+                break;
+            // Info is followed by an info string.
             case Info:
                 assert(!profileData_.empty,
                        "Invalid profiling data: info event not followed by string length");

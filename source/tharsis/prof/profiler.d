@@ -249,15 +249,17 @@ unittest
  */
 enum EventID: ubyte
 {
+    // A 'checkpoint' event followed by an absolute time value (8 7-bit bytes).
+    Checkpoint = 0,
     // Zone start.
-    ZoneStart     = 1,
+    ZoneStart  = 1,
     // Zone end.
-    ZoneEnd       = 2,
-    // Info string. EventID/time bytes are followed by a string length byte and a string 
+    ZoneEnd    = 2,
+    // Info string. EventID/time bytes are followed by a string length byte and a string
     // of up to 255 chars.
-    Info          = 3,
+    Info       = 3,
     // Frame divider event (separates frames).
-    Frame         = 4,
+    Frame      = 4,
 }
 
 // A global array with all event IDs
@@ -267,7 +269,7 @@ static assert(!allEventIDs.canFind!(e => e > eventIDMask),
               "Too high EventID value; last 3 bits are reserved for byte count");
 
 /* All EventID values must be 5-bit integers, with 0 reserved for 'Checkpoint' EventID
- * which is the only zero byte value that may appear in profiling data (this allows 
+ * which is the only zero byte value that may appear in profiling data (this allows
  * 'going backwards' in profile data).
  *
  * In profile data, an EventID is packed into a byte with a 3-bit 'byteCount' value,
@@ -289,6 +291,10 @@ package enum timeByteBits = 7;
 package enum timeByteMask = 0b01111111;
 // Mask to set the highest bit of a time byte to 1.
 package enum timeByteLastBit = 0b10000000;
+
+// Number of bytes storing absolute time in a checkpoint event (same format as time bytes).
+package enum checkpointByteCount = 8;
+
 
 /** Records profiling events into user-specified buffer.
  *
@@ -354,6 +360,9 @@ private:
     // Start time of the last event (as returned by std.datetime.Clock.currStdTime()).
     ulong lastTime_;
 
+    // Time when the Profiler was constructed (as returned by std.datetime.Clock.currStdTime()).
+    ulong startTime_;
+
     // Diagnostics about the profiler, such as which evenets are the most common.
     Diagnostics diagnostics_;
 
@@ -375,7 +384,7 @@ public:
                "Buffer passed to Profiler must be at least Profiler.maxEventBytes long");
         profileData_     = profileBuffer;
         profileDataUsed_ = 0;
-        lastTime_ = Clock.currStdTime().assumeWontThrow;
+        startTime_ = lastTime_ = Clock.currStdTime().assumeWontThrow;
     }
 
     /** Is the profiler out of space?
@@ -418,7 +427,35 @@ public:
     {
         if(outOfSpace) { return; }
         ++diagnostics_.frameCount;
-        profileData_[profileDataUsed_++] = EventID.Frame;
+        eventWithTime(EventID.Frame, 0);
+    }
+
+    /** Emit a checkpoint event.
+     *
+     * A checkpoint event inserts the absolute time of the last event before the
+     * checkpoint. This allows reconstrucing event times from the checkpoint instead of
+     * from the start. It also inserts a zero byte into profiling data, which no other
+     * event can do. This allows to rewind profiler data without having to go all the way
+     * to the start.
+     *
+     * Note: neither of these options is actually exploited at the moment; but they should
+     *       be useful for profiling visualizers and when processing massive profiling
+     *       outputs.
+     */
+    void checkpointEvent() @safe pure nothrow @nogc
+    {
+        if(outOfSpace) { return; }
+        eventWithTime(EventID.Checkpoint, 0);
+
+        auto time = lastTime_ - startTime_;
+        // Add 8 time bytes (can represent 128 ** 8 hnsecs)
+        foreach(b; 0 .. checkpointByteCount)
+        {
+            // The last bit ensures the resulting byte is never 0
+            profileData_[profileDataUsed_++] =
+                timeByteLastBit | cast(ubyte)(time & timeByteMask);
+            time >>= timeByteBits;
+        }
     }
 
     /** Reset the profiler.
@@ -435,7 +472,7 @@ public:
         assert(zoneNestLevel_ == 0, "Profiler can only be reset() while not in a Zone");
         profileData_[]   = 0;
         profileDataUsed_ = 0;
-        lastTime_ = Clock.currStdTime().assumeWontThrow;
+        startTime_ = lastTime_ = Clock.currStdTime().assumeWontThrow;
     }
 
     /** Get the raw data recorded by the profiler.
@@ -453,7 +490,7 @@ private:
      * Event ID is packed into a single byte together with the count of time gap bytes
      * (5 lower bits for event ID, 3 higher bits for byte count) This byte is followed
      * by a number of time gap bytes. Each time gap byte encodes 7 bits of the time gap
-     * (the topmost bit is always 1 to ensure time gap bytes are never 0 (to avoid 
+     * (the topmost bit is always 1 to ensure time gap bytes are never 0 (to avoid
      * confusion with checkpoint bytes, which are 0)). The first time gap byte stores the
      * lowest 7 bits of the time gap, second stores the next 7 bits, etc.
      */
@@ -605,11 +642,12 @@ unittest
             {
                 auto zone12 = Zone(profiler, "zone12");
             }
+            profiler.checkpointEvent();
         }
     }
 
     {
-        auto storage = new ubyte[Profiler.maxEventBytes + 128];
+        auto storage = new ubyte[Profiler.maxEventBytes + 256];
         profiler = new Profiler(storage);
         addZones();
 
@@ -619,8 +657,8 @@ unittest
         {
             assert(evts.front.id == Frame);        evts.popFront();
 
-            assert(evts.front.id == ZoneStart);                          evts.popFront();
-            assert(evts.front.id == Info && evts.front.info == "zone1"); evts.popFront();
+            assert(evts.front.id == ZoneStart);                           evts.popFront();
+            assert(evts.front.id == Info && evts.front.info == "zone1");  evts.popFront();
 
             assert(evts.front.id == ZoneStart);                           evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone11"); evts.popFront();
@@ -628,9 +666,13 @@ unittest
 
             assert(evts.front.id == ZoneStart);                           evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone12"); evts.popFront();
+            const time = evts.front.startTime;
             assert(evts.front.id == ZoneEnd);                             evts.popFront();
 
-            assert(evts.front.id == EventID.ZoneEnd);                   evts.popFront();
+            // Checkpoint start time must match the previous event.
+            assert(evts.front.startTime == time);
+            assert(evts.front.id == Checkpoint);                          evts.popFront();
+            assert(evts.front.id == ZoneEnd);                             evts.popFront();
         }
 
         auto zones = profiler.profileData.zoneRange;
@@ -645,9 +687,10 @@ unittest
             assert(z11.parentID == z1.id && z12.parentID == z1.id);
             assert(z11.nestLevel == 2 && z12.nestLevel == 2 && z1.nestLevel == 1);
             assert(z11.info == "zone11" && z12.info == "zone12" && z1.info == "zone1");
+
             assert(z11.startTime >= z1.startTime &&
-                    z12.startTime >= z11.startTime + z11.duration &&
-                    z1.startTime + z1.duration >= z12.startTime + z12.duration);
+                   z12.startTime >= z11.startTime + z11.duration &&
+                   z1.startTime + z1.duration >= z12.startTime + z12.duration);
         }
     }
 
