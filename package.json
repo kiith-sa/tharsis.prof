@@ -5,7 +5,7 @@
     "libs": [],
     "importPaths": ["source"],
     "license": "Boost 1.0",
-    "homepage": "https://github.com/kiith-sa/frameprof",
+    "homepage": "https://github.com/kiith-sa/tharsis.prof",
     "copyright": "Copyright © 2014, Ferdinand Majerech",
 
     "buildTypes":
