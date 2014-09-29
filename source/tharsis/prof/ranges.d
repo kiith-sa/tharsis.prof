@@ -489,10 +489,8 @@ struct ZoneRange(ERange)
     static assert(isForwardRange!ERange && is(Unqual!(ElementType!ERange) == Event),
                   "ERange parameter of ZoneRange must be a forward range of Event, "
                   "e.g. EventRange");
-private:
-    // Range to read profiling events from.
-    ERange events_;
 
+package:
     // Maximum stack depth of the zone stack. 640 nesting levels should be enough for everyone.
     enum maxStackDepth = 640;
 
@@ -506,6 +504,10 @@ private:
         // Info string about the zone as passed to the Zone constructor.
         const(char)[] info;
     }
+
+private:
+    // Range to read profiling events from.
+    ERange events_;
 
     // Stack of ZoneInfo describing the current zone and all its parents.
     //
@@ -833,6 +835,17 @@ public:
     // Must be a property, isForwardRange won't work otherwise.
     /// Get a copy of the range in its current state.
     @property EventRange save() const { return this; }
+
+package:
+    /** Get the number of remaining bytes in the underlying profile data.
+     *
+     * Used by code in tharsis.prof package to determine end position of an event in
+     * profile data without increasing memory overhead of EventRange.
+     */
+    size_t bytesLeft() @safe pure nothrow const @nogc
+    {
+        return profileData_.length;
+    }
 
 private:
     /* Read the next event from profile data.
