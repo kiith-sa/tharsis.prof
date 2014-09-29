@@ -222,7 +222,7 @@ public:
     }
 
     /// Destructor. Emits the zone end event with the Profiler.
-    ~this() @safe nothrow
+    ~this() @trusted nothrow
     {
         if(profiler_ !is null)
         {
@@ -452,6 +452,63 @@ public:
         foreach(b; 0 .. checkpointByteCount) { time = addTimeByte(time); }
     }
 
+    /** Emit a zone start event, when code enters a zone.
+     *
+     * Params:
+     *
+     * info = Information about the zone (e.g. its name). Will be added as an info event
+     *        following the zone start event.
+     *
+     * Returns: Nesting level of the newly started zone. Must be passed when corresponding
+     *          zoneEndEvent() is called. Used to ensure child events end before their
+     *          parent events.
+     *
+     * Note: zoneStartEvent should only be aleed directly where the Zone struct is not
+     *       sufficient (i.e. where a zone cannot be wrapped in a scope).
+     */
+    uint zoneStartEvent(const string info) @system nothrow
+    {
+        const time = Clock.currStdTime.assumeWontThrow;
+
+        auto timeLeft = time - lastTime_;
+        lastTime_ = time;
+
+        if(outOfSpace) { return ++zoneNestLevel_; }
+        ++diagnostics_.zoneStartCount;
+
+        eventWithTime(EventID.ZoneStart, timeLeft);
+        infoEvent(info);
+
+        return ++zoneNestLevel_;
+    }
+
+    /** Emit a zone end event, when code exits a zone.
+     *
+     * Params:
+     *
+     * nestLevel = Nesting level of the zone. Used to check that zones are exited in the
+     *             correct (hierarchical) order, i.e. a child zone must be ended before
+     *             its parent zone.
+     *
+     * Note: zoneEndEvent should only be called directly where the Zone struct is not
+     *       sufficient (i.e. where a zone cannot be wrapped in a scope).
+     */
+    void zoneEndEvent(const uint nestLevel) @system nothrow
+    {
+        assert(nestLevel == zoneNestLevel_,
+               "Zones must be hierarchical; detected a zone that ends after its parent");
+        --zoneNestLevel_;
+        const time = Clock.currStdTime.assumeWontThrow;
+
+        const timeLeft = time - lastTime_;
+        lastTime_ = time;
+        if(outOfSpace) { return; }
+        ++diagnostics_.zoneEndCount;
+
+        eventWithTime(EventID.ZoneEnd, timeLeft);
+    }
+
+
     /** Reset the profiler.
      *
      * Clears all profiled data. Reuses the buffer passed by the constructor to start
@@ -545,56 +602,6 @@ private:
         }
 
         assert(recordedTime == time);
-    }
-
-    /* Emit a zone start event, when code enters a zone.
-     *
-     * Params:
-     *
-     * info = Information about the zone (e.g. its name). Will be added as an info event
-     *        following the zone start event.
-     *
-     * Returns: Nesting level of the newly started zone. Must be passed when corresponding
-     *          zoneEndEvent() is called. Used to ensure child events end before their
-     *          parent events.
-     */
-    uint zoneStartEvent(const string info) @safe nothrow
-    {
-        const time = Clock.currStdTime.assumeWontThrow;
-
-        auto timeLeft = time - lastTime_;
-        lastTime_ = time;
-
-        if(outOfSpace) { return ++zoneNestLevel_; }
-        ++diagnostics_.zoneStartCount;
-
-        eventWithTime(EventID.ZoneStart, timeLeft);
-        infoEvent(info);
-
-        return ++zoneNestLevel_;
-    }
-
-    /* Emit a zone end event, when code exits a zone.
-     *
-     * Params:
-     *
-     * nestLevel = Nesting level of the zone. Used to check that zones are exited in the
-     *             correct (hierarchical) order, i.e. a child zone must be ended before
-     *             its parent zone.
-     */
-    void zoneEndEvent(const uint nestLevel) @safe nothrow
-    {
-        assert(nestLevel == zoneNestLevel_,
-               "Zones must be hierarchical; detected a zone that ends after its parent");
-        --zoneNestLevel_;
-        const time = Clock.currStdTime.assumeWontThrow;
-
-        const timeLeft = time - lastTime_;
-        lastTime_ = time;
-        if(outOfSpace) { return; }
-        ++diagnostics_.zoneEndCount;
-
-        eventWithTime(EventID.ZoneEnd, timeLeft);
     }
 
     /* Emit an info event.
