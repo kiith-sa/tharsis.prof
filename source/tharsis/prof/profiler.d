@@ -221,13 +221,18 @@ public:
         }
     }
 
-    /// Destructor. Emits the zone end event with the Profiler.
+    /** Destructor. Emits the zone end event with the Profiler.
+     *
+     * Can be called early (using destroy()) to end the zone before end of the scope.
+     */
     ~this() @trusted nothrow
     {
         if(profiler_ !is null)
         {
             profiler_.zoneEndEvent(nestLevel_);
         }
+        // Ensures that if we call the destructor early, we won't emit the end event twice.
+        profiler_ = null;
     }
 }
 unittest
