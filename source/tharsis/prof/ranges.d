@@ -618,22 +618,18 @@ private:
 
             with(EventID) final switch(event.id)
             {
-                case Frame:      break;
-                case Checkpoint: break;
+                case Frame, Checkpoint: break;
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
                            "Zone nesting too deep; zone stack overflow.");
                     zoneStack_[zoneStackDepth_++] = ZoneInfo(nextID_++, lastEventTime_);
                     break;
-                case ZoneEnd:
-                    return;
+                case ZoneEnd: return;
                 // If an info event has the same start time as the current zone, it's info
                 // about the current zone.
                 case Info:
-                    if(event.startTime == zoneStack_[zoneStackDepth_ - 1].startTime)
-                    {
-                        zoneStack_[zoneStackDepth_ - 1].info = event.info;
-                    }
+                    auto curZone = &zoneStack_[zoneStackDepth_ - 1];
+                    if(event.startTime == curZone.startTime) { curZone.info = event.info; }
                     break;
             }
         }
