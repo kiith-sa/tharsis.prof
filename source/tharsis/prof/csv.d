@@ -40,7 +40,7 @@ void writeCSVTo(ERange, ORange)(ERange events, ORange output)
     {
         if(!info.empty && !info.canFind!(c => ",\"".canFind(c)).assumeWontThrow)
         {
-            output.formattedWrite("%s,%s,%s\n", id, startTime, info).assumeWontThrow;
+            output.formattedWrite("%s,%s,%s\n", id, time, info).assumeWontThrow;
             continue;
         }
 
@@ -57,7 +57,7 @@ void writeCSVTo(ERange, ORange)(ERange events, ORange output)
             if(c == '"') { quotedBuf[quotedSize++] = '"'; }
         }
         quotedBuf[quotedSize++] = '"';
-        output.formattedWrite("%s,%s,%s\n", id, startTime, quotedBuf[0 .. quotedSize])
+        output.formattedWrite("%s,%s,%s\n", id, time, quotedBuf[0 .. quotedSize])
               .assumeWontThrow;
     }
 }

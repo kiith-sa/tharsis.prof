@@ -24,8 +24,8 @@ struct Event
 {
     /// Event ID or type.
     EventID id;
-    /// Start time of the event since recording started in hectonanoseconds.
-    ulong startTime;
+    /// Time of the event since recording started in hectonanoseconds.
+    ulong time;
     /// Information string if id == $(D EventID.Info) .
     const(char)[] info;
 }
@@ -621,7 +621,7 @@ private:
         for(; !events_.empty; events_.popFront())
         {
             const event = events_.front;
-            lastEventTime_ = event.startTime;
+            lastEventTime_ = event.time;
 
             with(EventID) final switch(event.id)
             {
@@ -636,7 +636,7 @@ private:
                 // about the current zone.
                 case Info:
                     auto curZone = &zoneStack_[zoneStackDepth_ - 1];
-                    if(event.startTime == curZone.startTime) { curZone.info = event.info; }
+                    if(event.time == curZone.startTime) { curZone.info = event.info; }
                     break;
             }
         }
@@ -792,7 +792,7 @@ private:
 
     // If empty_ is false, this is the event at the front of the range.
     //
-    // front_.startTime is incrementally increased with each readEvent() call instead of
+    // front_.time is incrementally increased with each readEvent() call instead of
     // clearing front_ completely.
     Event front_;
 
@@ -878,8 +878,8 @@ private:
             foreach(b; 0 .. count)
             {
                 assert(profileData_.front != 0, "Time bytes must not be 0");
-                front_.startTime += cast(ulong)(profileData_.front() & timeByteMask) 
-                                    << (b * timeByteBits);
+                front_.time += cast(ulong)(profileData_.front() & timeByteMask)
+                               << (b * timeByteBits);
                 profileData_.popFront();
             }
         }
@@ -895,7 +895,7 @@ private:
                 // This is not really necessary ATM, (relative time would get us the same
                 // result as this code), but allow 'disjoint' checkpoints that change the
                 // 'current time' in future.
-                front_.startTime = 0;
+                front_.time = 0;
                 parseTimeBytes(checkpointByteCount);
                 break;
             // Info is followed by an info string.
@@ -954,7 +954,7 @@ unittest
     // This doesn't filter anything or allocate; filtering only happens once the
     // range is iterated over (but if we did want to do the filtering right now, e.g. to
     // get an array of filtered results, we'd suffix this with ".array")
-    auto filtered = events.filter!(e => e.startTime > 1500 && e.startTime < 2000);
+    auto filtered = events.filter!(e => e.time > 1500 && e.time < 2000);
     // Here, we print the IDs of events between 10000 and 50000 hectonanoseconds
     foreach(id; filtered.map!(e => e.id))
     {

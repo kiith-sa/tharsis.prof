@@ -681,11 +681,11 @@ unittest
 
             assert(evts.front.id == ZoneStart);                           evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone12"); evts.popFront();
-            const time = evts.front.startTime;
+            const time = evts.front.time;
             assert(evts.front.id == ZoneEnd);                             evts.popFront();
 
             // Checkpoint start time must match the previous event.
-            assert(evts.front.startTime == time);
+            assert(evts.front.time == time);
             assert(evts.front.id == Checkpoint);                          evts.popFront();
             assert(evts.front.id == ZoneEnd);                             evts.popFront();
         }
