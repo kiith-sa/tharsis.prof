@@ -333,7 +333,7 @@ unittest
     }
 
     // Accumulate data into this struct.
-    struct ZoneInfo
+    struct ZoneStats
     {
         ulong minDuration;
         ulong maxDuration;
@@ -345,11 +345,11 @@ unittest
     }
 
     // Gets min, max, total duration as well as the number of times the zone was entered.
-    ZoneInfo accum(ZoneInfo* aPtr, ref const ZoneData z) pure nothrow @nogc
+    ZoneStats accum(ZoneStats* aPtr, ref const ZoneData z) pure nothrow @nogc
     {
-        if(aPtr is null) { return ZoneInfo(z.duration, z.duration, 1); }
+        if(aPtr is null) { return ZoneStats(z.duration, z.duration, 1); }
 
-        return ZoneInfo(min(aPtr.minDuration, z.duration),
+        return ZoneStats(min(aPtr.minDuration, z.duration),
                         max(aPtr.maxDuration, z.duration),
                         aPtr.instanceCount + 1);
     }
