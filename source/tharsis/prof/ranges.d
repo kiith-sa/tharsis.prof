@@ -464,6 +464,20 @@ ZoneRange!EventRange zoneRange(const(ubyte)[] profileData) @safe pure nothrow @n
     return ZoneRange!EventRange(profileData.eventRange);
 }
 
+// Maximum stack depth of the zone stack. 640 nesting levels should be enough for everyone.
+package enum maxStackDepth = 640;
+
+// Information about a parent zone in ZoneRange's zone stack.
+package struct ZoneInfo
+{
+    // Zone ID of the zone (to set parentID).
+    uint id;
+    // Start time of the zone since the recording started.
+    ulong startTime;
+    // Info string about the zone as passed to the Zone constructor.
+    const(char)[] info;
+}
+
 /** Light-weight range that iterates over zones in profile data.
  *
  * Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm/std.range
@@ -489,21 +503,6 @@ struct ZoneRange(ERange)
     static assert(isForwardRange!ERange && is(Unqual!(ElementType!ERange) == Event),
                   "ERange parameter of ZoneRange must be a forward range of Event, "
                   "e.g. EventRange");
-
-package:
-    // Maximum stack depth of the zone stack. 640 nesting levels should be enough for everyone.
-    enum maxStackDepth = 640;
-
-    // Information about a parent zone in the stack.
-    struct ZoneInfo
-    {
-        // Zone ID of the zone (to set parentID).
-        uint id;
-        // Start time of the zone since the recording started.
-        ulong startTime;
-        // Info string about the zone as passed to the Zone constructor.
-        const(char)[] info;
-    }
 
 private:
     // Range to read profiling events from.
