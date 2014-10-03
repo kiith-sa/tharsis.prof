@@ -511,7 +511,7 @@ private:
 
     // Stack of ZoneInfo describing the current zone and all its parents.
     //
-    // The current stack can be found at zoneStack_[zoneStackDepth_ - 1], its parent
+    // The current zone can be found at zoneStack_[zoneStackDepth_ - 1], its parent
     // at zoneStack_[zoneStackDepth_ - 2], etc.
     ZoneInfo[maxStackDepth] zoneStack_;
 
