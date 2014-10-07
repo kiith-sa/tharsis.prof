@@ -484,6 +484,7 @@ public:
         ++diagnostics_.zoneStartCount;
 
         eventWithTime(EventID.ZoneStart, timeLeft);
+        if(outOfSpace) { return ++zoneNestLevel_; }
         infoEvent(info);
 
         return ++zoneNestLevel_;
