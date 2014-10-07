@@ -543,6 +543,15 @@ public:
         return profileData_[0 .. profileDataUsed_];
     }
 
+    /** Get the nest level of the current zone, if any.
+     *
+     * 0 means the profiler is not in any zone.
+     */
+    uint zoneNestLevel() @safe pure nothrow const @nogc
+    {
+        return zoneNestLevel_;
+    }
+
 private:
     /* Add one byte of a 'time byte' sequence that encodes a time span.
      *
