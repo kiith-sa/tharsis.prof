@@ -124,6 +124,15 @@ import std.exception;
 //       be represented by a 'Compressed' EventID followed by length of compressed data.
 // TODO: Compress info strings with a short string compressor like shoco or smaz (both at
 //       github) (of course, will need to convert whatever we use to D).
+
+// TODO: Allow specifying zone info as a compile-time param:
+//       If specified at compile time, instead of ZoneEvent we use a deduplicatedZoneEvent
+//       or something with a similar name, which should just store a hash or maybe
+//       a 2-byte index to a global immutable array of strings. That array would be
+//       built in static this() emitted from all Zone() ctors with a compile-time info
+//       string. (Since we know it at compile-time, we can do any deduplication at
+//       compile-time or static ctor-time - and the restulting structure can be immutable
+//       - usable from multiple threads)
 // TODO: External viewer. Try to support real-time viewing (send data through socket). Also
 //       dumping/loading profiling data, probably with YAML, but core FrameProf shouldn't
 //       have a D:YAML dependency.
