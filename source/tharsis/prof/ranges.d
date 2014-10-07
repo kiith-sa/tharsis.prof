@@ -875,6 +875,7 @@ private:
         // Parses 'time bytes' each encoding 7 bits of a time span value
         void parseTimeBytes(uint count) nothrow @nogc
         {
+            assert(count <= 8, "Time byte count can't be more than 8 bytes");
             foreach(b; 0 .. count)
             {
                 assert(profileData_.front != 0, "Time bytes must not be 0");
