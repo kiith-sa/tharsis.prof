@@ -206,19 +206,16 @@ public:
      * info     = Zone information string. Used to recognize zones when parsing and
      *            accumulating profile data. Can be the 'name' of the zone, possibly with
      *            some extra _info (e.g. "frame": entire frame or "batch 5": fifth draw
-     *            batch). $(B Must not) be longer than 255 characters and $(B must not)
-     *            contain zero ($(D '\0')) characters.
+     *            batch). $(B Must not) be empty or longer than 255 characters and 
+     *            $(B must not) contain zero ($(D '\0')) characters.
      */
     this(Profiler profiler, string info) @trusted nothrow
     {
-        assert(info.length <= ubyte.max, "Zone info strings can be at most 255 bytes long");
-        assert(!(cast(ubyte[])info).canFind(0), "Zone info strings must not contain '\\0'");
-
-        profiler_  = profiler;
-        if(profiler_ !is null)
+        if(profiler !is null)
         {
-            nestLevel_ = profiler_.zoneStartEvent(info);
+            nestLevel_ = profiler.zoneStartEvent(info);
         }
+        profiler_  = profiler;
     }
 
     /** Destructor. Emits the zone end event with the Profiler.
@@ -462,7 +459,8 @@ public:
      * Params:
      *
      * info = Information about the zone (e.g. its name). Will be added as an info event
-     *        following the zone start event.
+     *        following the zone start event. $(B Must not) be empty or longer than 255
+     *        characters and $(B must not) contain zero ($(D '\0')) characters.
      *
      * Returns: Nesting level of the newly started zone. Must be passed when corresponding
      *          zoneEndEvent() is called. Used to ensure child events end before their
@@ -473,6 +471,10 @@ public:
      */
     uint zoneStartEvent(const string info) @system nothrow
     {
+        assert(info.length <= ubyte.max, "Zone info strings can be at most 255 bytes long");
+        assert(info.length > 0, "Zone info strings must not be empty");
+        assert(!(cast(ubyte[])info).canFind(0), "Zone info strings must not contain '\\0'");
+
         const time = Clock.currStdTime.assumeWontThrow;
 
         auto timeLeft = time - lastTime_;
@@ -546,7 +548,7 @@ private:
      * Takes the time we're encoding and returns remainder of that time that is not yet
      * encoded into time btyes (time / 128).
      */
-    ulong addTimeByte(ulong time) @safe pure nothrow @nogc 
+    ulong addTimeByte(ulong time) @safe pure nothrow @nogc
     {
         // The last bit ensures the resulting byte is never 0
         profileData_[profileDataUsed_++] = timeByteLastBit | cast(ubyte)(time & timeByteMask);
