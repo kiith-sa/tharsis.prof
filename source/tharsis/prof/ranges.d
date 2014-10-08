@@ -262,7 +262,6 @@ unittest
     {
         import std.datetime;
         auto startTime = Clock.currStdTime();
-        profiler.frameEvent();
         // Wait long enough so the time gap is represented by >2 bytes.
         while(Clock.currStdTime() - startTime <= 65536) { continue; }
         auto zone1 = Zone(profiler, "zone1");
@@ -625,7 +624,7 @@ private:
 
             with(EventID) final switch(event.id)
             {
-                case Frame, Checkpoint: break;
+                case Checkpoint: break;
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
                            "Zone nesting too deep; zone stack overflow.");
@@ -890,7 +889,7 @@ private:
 
         with(EventID) switch(front_.id)
         {
-            case Frame, ZoneStart, ZoneEnd: return;
+            case ZoneStart, ZoneEnd: return;
             case Checkpoint:
                 // A checkpoint contains absolute start time. 
                 // This is not really necessary ATM, (relative time would get us the same

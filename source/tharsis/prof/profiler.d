@@ -269,8 +269,6 @@ enum EventID: ubyte
     // Info string. EventID/time bytes are followed by a string length byte and a string
     // of up to 255 chars.
     Info       = 3,
-    // Frame divider event (separates frames).
-    Frame      = 4,
 }
 
 // A global array with all event IDs
@@ -417,28 +415,6 @@ public:
     Diagnostics diagnostics() @safe pure nothrow const @nogc
     {
         return diagnostics_;
-    }
-
-    /** Emit a frame event. Should be called when one frame ends and another ends.
-     *
-     * Note that in most cases, frame events are not really needed; usually, a top-level
-     * zone can be used to contain the entire frame:
-     *
-     * --------------------
-     * {
-     *     auto zone = Zone(profiler, "frame");
-     *
-     *     // Frame code
-     * }
-     * --------------------
-     *
-     * It is possible that frame events will have more specific uses in future, though.
-     */
-    void frameEvent() @safe pure nothrow @nogc
-    {
-        if(outOfSpace) { return; }
-        ++diagnostics_.frameCount;
-        eventWithTime(EventID.Frame, 0);
     }
 
     /** Emit a checkpoint event.
@@ -659,7 +635,6 @@ unittest
         foreach(i; 0 .. 3)
         {
             auto startTime = Clock.currStdTime().assumeWontThrow;
-            profiler.frameEvent();
             // Wait long enough to store the time gap in >2 bytes.
             while(Clock.currStdTime().assumeWontThrow - startTime <= 65536)
             {
@@ -691,8 +666,6 @@ unittest
         auto evts = profiler.profileData.eventRange;
         foreach(i; 0 .. 3) with(EventID)
         {
-            assert(evts.front.id == Frame);        evts.popFront();
-
             assert(evts.front.id == ZoneStart);                           evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone1");  evts.popFront();
 

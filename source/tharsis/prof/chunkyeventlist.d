@@ -661,7 +661,7 @@ public:
             alias depth = zoneStackDepth_;
             with(EventID) final switch(event.id)
             {
-                case Frame,Checkpoint: break;
+                case Checkpoint: break;
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
                            "Zone nesting too deep; zone stack overflow.");
