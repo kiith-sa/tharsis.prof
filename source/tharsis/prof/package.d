@@ -7,7 +7,8 @@ module tharsis.prof;
 
 
 public:
-    import tharsis.prof.profiler;
-    import tharsis.prof.ranges;
     import tharsis.prof.chunkyeventlist;
     import tharsis.prof.csv;
+    import tharsis.prof.despikersender;
+    import tharsis.prof.profiler;
+    import tharsis.prof.ranges;
