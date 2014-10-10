@@ -17,7 +17,7 @@ with conventional profilers.
 Tharsis.prof is designed to be easy to use and lightweight. See the example below to get
 started.
 
-Note that this is still a **work in progress**. Its API is not stable and there might be
+Note that this is still a **work in progress**. The API is not stable and there might be
 compatibility **breaking changes** in future.
 
 
@@ -34,67 +34,72 @@ to the ``"dependencies"`` in your project's ``dub.json``/``package.json``.
 Tharsis.prof requires DMD 2.066 or equivalent GDC/LDC.
 
 
-Recording profiling data:
+* Recording profiling data:
 
-.. code-block:: d
+  .. code-block:: d
 
-   import tharsis.prof;
+     import tharsis.prof;
 
-   // Get 2 MB more than the minimum (maxEventBytes). Could also use malloc() here.
-   ubyte[] storage = new ubyte[Profiler.maxEventBytes + 1024 * 1024 * 2];
-   // Could use std.typecons.scoped! to avoid GC here.
-   auto profiler = new Profiler(storage);
+     // Get 2 MB more than the minimum (maxEventBytes). Could also use malloc() here.
+     ubyte[] storage = new ubyte[Profiler.maxEventBytes + 1024 * 1024 * 2];
+     // Could use std.typecons.scoped! to avoid GC here.
+     auto profiler = new Profiler(storage);
 
-   while(!done)
-   {
-       auto frameZone = Zone(profiler, "frame");
-       {
-           auto renderingZone = Zone(profiler, "rendering");
+     while(!done)
+     {
+         auto frameZone = Zone(profiler, "frame");
+         {
+             auto renderingZone = Zone(profiler, "rendering");
 
-           // do rendering here
-       }
-       {
-           auto physicsZone = Zone(profiler, "physics");
+             // do rendering here
+         }
+         {
+             auto physicsZone = Zone(profiler, "physics");
 
-           // do physics here
-       }
-   }
+             // do physics here
+         }
+     }
 
+* Visualizing profiling data in real-time:
 
-Processing profiling data:
-
-.. code-block:: d
-
-    // Filter all instances of the "frame" zone
-    auto zones = profiler.profileData.zoneRange;
-    auto frames = zones.filter!(z => z.info == "frame");
-
-    // Sort the frames by duration from longest to shortest.
-    import std.container;
-    // Builds an RAII array containing zones from frames. We need an array as we need
-    // random access to sort the zones (ZoneRange generates ZoneData on-the-fly as it
-    // processes profiling data, so it has no random access).
-    auto frameArray = Array!ZoneData(frames);
-    frameArray[].sort!((a, b) => a.duration > b.duration);
-
-    import std.stdio;
-    // Print the 4 longest frames.
-    foreach(frame; frameArray[0 .. 4])
-    {
-        // In hectonanoseconds (tenths of microsecond)
-        writeln(frame.duration);
-    }
-
-    // Print details about all zones in the worst frame.
-    auto worst = frameArray[0];
-    foreach(zone; zones.filter!(z => z.startTime >= worst.startTime && z.endTime <= worst.endTime))
-    {
-        writefln("%s: %s hnsecs from %s to %s",
-                 zone.info, zone.duration, zone.startTime, zone.endTime);
-    }
+  See the `Despiker <https://github.com/kiith-sa/despiker>`_ project
+  (`tutorial <http://defenestrate.eu/docs/despiker/tutorials/getting_started.html>`_).
 
 
-For detailed documentation with more specific code examples, see the 
+* Processing profiling data in code:
+
+  .. code-block:: d
+
+      // Filter all instances of the "frame" zone
+      auto zones = profiler.profileData.zoneRange;
+      auto frames = zones.filter!(z => z.info == "frame");
+
+      // Sort the frames by duration from longest to shortest.
+      import std.container;
+      // Builds an RAII array containing zones from frames. We need an array as we need
+      // random access to sort the zones (ZoneRange generates ZoneData on-the-fly as it
+      // processes profiling data, so it has no random access).
+      auto frameArray = Array!ZoneData(frames);
+      frameArray[].sort!((a, b) => a.duration > b.duration);
+
+      import std.stdio;
+      // Print the 4 longest frames.
+      foreach(frame; frameArray[0 .. 4])
+      {
+          // In hectonanoseconds (tenths of microsecond)
+          writeln(frame.duration);
+      }
+
+      // Print details about all zones in the worst frame.
+      auto worst = frameArray[0];
+      foreach(zone; zones.filter!(z => z.startTime >= worst.startTime && z.endTime <= worst.endTime))
+      {
+          writefln("%s: %s hnsecs from %s to %s",
+                   zone.info, zone.duration, zone.startTime, zone.endTime);
+      }
+
+
+For detailed documentation with more specific code examples, see the
 `API documentation <http://defenestrate.eu/docs/tharsis.prof/index.html>`_.
 
 
@@ -103,6 +108,9 @@ Features
 --------
 
 * Easy to use, RAII-style API for recording profiling data.
+* Can be used together with `Despiker <https://github.com/kiith-sa/despiker>`_ to visually
+  profile a game in real time (`tutorial
+  <http://defenestrate.eu/docs/despiker/tutorials/getting_started.html>`_).
 * Detailed `API documentation <http://defenestrate.eu/docs/tharsis.prof/index.html>`_
   with code examples.
 * Profile data can be analyzed in real time within a game (between frames, or top-level
@@ -110,12 +118,13 @@ Features
 * `Range-based API
   <http://defenestrate.eu/2014/09/05/frame_based_profiling_with_d_ranges.html>`_ for
   analyzing profile data; works with ``std.algorithm`` and other Phobos modules.
-* No GC usage and no internal heap allocations (user must provide memory explicitly).
-* Designed to use as little memory as possible in heavy workloads (but it can still use 
-  quite a lot). *Memory usage in light workloads has been improved as well*.
-* Uses high-precision clocks (hectonanosecond (tenth of microsecond) precision).
+* No GC usage and no internal heap allocations (user must provide memory explicitly),
+  except for exception handling if sending data to `Despiker
+  <https://github.com/kiith-sa/despiker>`_
+* Designed to use as little memory as possible in heavy workloads (but it can still use
+  quite a lot). *Memory usage in light workloads has been improved*.
+* Uses high-precision clocks (hectonanosecond - tenth of microsecond - precision).
 * No dependencies.
-* **No** utilities to visualize profiling data (yet).
 
 
 -------------------

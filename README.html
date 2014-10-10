@@ -350,7 +350,7 @@ overhead (such as lag that appears only once in a few seconds) that are hard to 
 with conventional profilers.</p>
 <p>Tharsis.prof is designed to be easy to use and lightweight. See the example below to get
 started.</p>
-<p>Note that this is still a <strong>work in progress</strong>. Its API is not stable and there might be
+<p>Note that this is still a <strong>work in progress</strong>. The API is not stable and there might be
 compatibility <strong>breaking changes</strong> in future.</p>
 </div>
 <div class="section" id="getting-started">
@@ -361,7 +361,8 @@ compatibility <strong>breaking changes</strong> in future.</p>
 </pre>
 <p>to the <tt class="docutils literal">&quot;dependencies&quot;</tt> in your project's <tt class="docutils literal">dub.json</tt>/<tt class="docutils literal">package.json</tt>.</p>
 <p>Tharsis.prof requires DMD 2.066 or equivalent GDC/LDC.</p>
-<p>Recording profiling data:</p>
+<ul>
+<li><p class="first">Recording profiling data:</p>
 <pre class="code d literal-block">
 <span class="keyword">import</span> <span class="name">tharsis</span><span class="punctuation">.</span><span class="name">prof</span><span class="punctuation">;</span>
 
@@ -385,7 +386,12 @@ compatibility <strong>breaking changes</strong> in future.</p>
 </span>    <span class="punctuation">}</span>
 <span class="punctuation">}</span>
 </pre>
-<p>Processing profiling data:</p>
+</li>
+<li><p class="first">Visualizing profiling data in real-time:</p>
+<p>See the <a class="reference external" href="https://github.com/kiith-sa/despiker">Despiker</a> project
+(<a class="reference external" href="http://defenestrate.eu/docs/despiker/tutorials/getting_started.html">tutorial</a>).</p>
+</li>
+<li><p class="first">Processing profiling data in code:</p>
 <pre class="code d literal-block">
 <span class="comment single">// Filter all instances of the &quot;frame&quot; zone
 </span><span class="keyword">auto</span> <span class="name">zones</span> <span class="punctuation">=</span> <span class="name">profiler</span><span class="punctuation">.</span><span class="name">profileData</span><span class="punctuation">.</span><span class="name">zoneRange</span><span class="punctuation">;</span>
@@ -415,6 +421,8 @@ compatibility <strong>breaking changes</strong> in future.</p>
              <span class="name">zone</span><span class="punctuation">.</span><span class="name">info</span><span class="punctuation">,</span> <span class="name">zone</span><span class="punctuation">.</span><span class="name">duration</span><span class="punctuation">,</span> <span class="name">zone</span><span class="punctuation">.</span><span class="name">startTime</span><span class="punctuation">,</span> <span class="name">zone</span><span class="punctuation">.</span><span class="name">endTime</span><span class="punctuation">);</span>
 <span class="punctuation">}</span>
 </pre>
+</li>
+</ul>
 <p>For detailed documentation with more specific code examples, see the
 <a class="reference external" href="http://defenestrate.eu/docs/tharsis.prof/index.html">API documentation</a>.</p>
 </div>
@@ -422,18 +430,20 @@ compatibility <strong>breaking changes</strong> in future.</p>
 <h1>Features</h1>
 <ul class="simple">
 <li>Easy to use, RAII-style API for recording profiling data.</li>
+<li>Can be used together with <a class="reference external" href="https://github.com/kiith-sa/despiker">Despiker</a> to visually
+profile a game in real time (<a class="reference external" href="http://defenestrate.eu/docs/despiker/tutorials/getting_started.html">tutorial</a>).</li>
 <li>Detailed <a class="reference external" href="http://defenestrate.eu/docs/tharsis.prof/index.html">API documentation</a>
 with code examples.</li>
 <li>Profile data can be analyzed in real time within a game (between frames, or top-level
 zones)</li>
 <li><a class="reference external" href="http://defenestrate.eu/2014/09/05/frame_based_profiling_with_d_ranges.html">Range-based API</a> for
 analyzing profile data; works with <tt class="docutils literal">std.algorithm</tt> and other Phobos modules.</li>
-<li>No GC usage and no internal heap allocations (user must provide memory explicitly).</li>
+<li>No GC usage and no internal heap allocations (user must provide memory explicitly),
+except for exception handling if sending data to <a class="reference external" href="https://github.com/kiith-sa/despiker">Despiker</a></li>
 <li>Designed to use as little memory as possible in heavy workloads (but it can still use
-quite a lot). <em>Memory usage in light workloads has been improved as well</em>.</li>
-<li>Uses high-precision clocks (hectonanosecond (tenth of microsecond) precision).</li>
+quite a lot). <em>Memory usage in light workloads has been improved</em>.</li>
+<li>Uses high-precision clocks (hectonanosecond - tenth of microsecond - precision).</li>
 <li>No dependencies.</li>
-<li><strong>No</strong> utilities to visualize profiling data (yet).</li>
 </ul>
 </div>
 <div class="section" id="directory-structure">
