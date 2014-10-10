@@ -34,7 +34,6 @@ unittest
     ubyte[] storage = new ubyte[Profiler.maxEventBytes + 2048];
     auto profiler = new Profiler(storage);
 
-    // std.typecons.scoped! stores the Profiler on the stack.
     // Simulate 16 'frames'
     foreach(frame; 0 .. 16)
     {
