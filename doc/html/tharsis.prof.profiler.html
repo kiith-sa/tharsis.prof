@@ -4,13 +4,13 @@
 <html lang='en'>
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" >
-<title>tharsis.prof.profiler - Tharsis.prof 0.1 API documentation</title>
+<title>tharsis.prof.profiler - Tharsis.prof 0.4 API documentation</title>
 <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 
 <body><div id="top">
 <div id="header">
-<a id="main-heading" href="index.html">Tharsis.prof 0.1 API documentation</a>
+<a id="main-heading" href="index.html">Tharsis.prof 0.4 API documentation</a>
 </div>
 </div>
 
@@ -23,6 +23,9 @@
 </div>
 <div class="navblock">
 <ul><li><a href="index.html">Main page</a></li>
+<li><a href="tharsis.prof.chunkyeventlist.html">tharsis.prof.chunkyeventlist</a></li>
+<li><a href="tharsis.prof.csv.html">tharsis.prof.csv</a></li>
+<li><a href="tharsis.prof.despikersender.html">tharsis.prof.despikersender</a></li>
 <li><a href="tharsis.prof.profiler.html">tharsis.prof.profiler</a></li>
 <li><a href="tharsis.prof.ranges.html">tharsis.prof.ranges</a></li>
 </ul>
@@ -41,7 +44,7 @@
 
 </p>
 <p><b>Realtime:</b><br>
-Recording is very lightweight, without any complicated logic or memory allocations.
+Recording is very lightweight, without any complicated logic or heap allocations.
  This allows to use Tharsis-prof as a 'short-term profiler' that can record profiling
  data over the duration of a few frames and be detect bottlenecks in real time. Game
  code can then react, for example by disabling resource intensive nonessential features
@@ -95,7 +98,7 @@ Tharsis.prof measures time in D 'hectonanoseconds', or tenths of a microsecond. 
 </pre>
 </div>
 
-<dl><dt class="d_decl"><a name="Zone.this"></a>nothrow @safe this(Profiler <b>profiler</b>, string <b>info</b>);
+<dl><dt class="d_decl"><a name="Zone.this"></a>nothrow @trusted this(Profiler <b>profiler</b>, string <b>info</b>);
 </dt>
 <dd><p>Construct a zone to record with specified profiler.
 </p>
@@ -103,13 +106,15 @@ Tharsis.prof measures time in D 'hectonanoseconds', or tenths of a microsecond. 
 
 </p>
 <b>Parameters:</b><div class="pbr"><table class=parms><tr><td valign=top>Profiler <b>profiler</b></td>
-<td valign=top>Profiler to record the zone with.</td></tr>
+<td valign=top>Profiler to record into. If <span class="d_inlinecode"><b>null</b></span>, the zone is ignored. This enables
+            'optional profiling', where instrumenting code (zones) is always present
+            in the code but only activated when a Profiler exists.</td></tr>
 <tr><td valign=top>string <b>info</b></td>
-<td valign=top>Zone information string. Used to differentiate between zones when
-            parsing and accumulating profile data. Can be the 'name' of the zone,
-            possibly with some extra info (e.g. "frame" for the entire frame or
-            "batch 5" for the fifth draw batch). <b>Must not</b> be longer than 255
-            characters.</td></tr>
+<td valign=top>Zone information string. Used to recognize zones when parsing and
+            accumulating profile data. Can be the 'name' of the zone, possibly with
+            some extra info (e.g. "frame": entire frame or "batch 5": fifth draw
+            batch). <b>Must not</b> be empty or longer than 255 characters and
+            <b>must not</b> contain zero (<span class="d_inlinecode">'\0'</span>) characters.</td></tr>
 </table></div>
 
 </dd>
@@ -117,9 +122,7 @@ Tharsis.prof measures time in D 'hectonanoseconds', or tenths of a microsecond. 
 </dd>
 <dt class="d_decl"><a name="EventID"></a>enum <a name="EventID"></a><span class="ddoc_psymbol">EventID</span>: ubyte;
 </dt>
-<dd><p>Types of events recorded by Profiler.
-</p>
-<p>Mapped directly to byte values of these events in profile data.</p>
+<dd><p>Types of events recorded by Profiler.</p>
 
 </dd>
 <dt class="d_decl"><a name="Profiler"></a>class <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span>;
@@ -132,7 +135,7 @@ Tharsis.prof measures time in D 'hectonanoseconds', or tenths of a microsecond. 
  <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span> writes profiling data into a byte buffer passed to <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span> constructor by the
  user. Once there is not enough space to write any more profiling events, the profiler
  quietly ignores any events (this can be checked by outOfSpace()). <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span> <b>never
- allocates memory</b> by itself.
+ allocates heap memory</b> by itself.
 <br>
 
  Recorded data can be accessed at any time through profileData() and analyzed with help
@@ -158,8 +161,8 @@ Accessing profile data from an out-of-space profiler or in the middle of a zone 
 <br>
 
  Depending on the worload and number of zones, <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span> can eat through assigned memory
- rather quickly. The lowest memory overhead of <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span> is around 550 kiB per hour, but
- with 10000 zones at 120 FPS the overhead is going to be around 14 MiB <b>per second</b>.</p>
+ rather quickly.  With 10000 zones at 120 FPS the overhead is going to be around 14 MiB
+ <b>per second</b>.</p>
 
 <dl><dt class="d_decl"><a name="Profiler.Diagnostics"></a>struct <a name="Diagnostics"></a><span class="ddoc_psymbol">Diagnostics</span>;
 </dt>
@@ -175,7 +178,7 @@ Accessing profile data from an out-of-space profiler or in the middle of a zone 
 </dt>
 <dd><p>Construct a Profiler writing profiling data to specified buffer.
 </p>
-<p>Profiler doesn't allocate any memory. It will write profiling data into given
+<p>Profiler doesn't allocate heap memory. It will write profiling data into given
  buffer until it runs out of space, at which point it will silently stop profiling
  (this can be detected by outOfSpace() ).
 
@@ -201,23 +204,54 @@ Accessing profile data from an out-of-space profiler or in the middle of a zone 
 <p>Useful for profiling the profiler.</p>
 
 </dd>
-<dt class="d_decl"><a name="Profiler.frameEvent"></a>pure nothrow @nogc @safe void <a name="frameEvent"></a><span class="ddoc_psymbol">frameEvent</span>();
+<dt class="d_decl"><a name="Profiler.checkpointEvent"></a>pure nothrow @nogc @safe void <a name="checkpointEvent"></a><span class="ddoc_psymbol">checkpointEvent</span>();
 </dt>
-<dd><p>Emit a frame event. Should be called when one frame ends and another ends.
+<dd><p>Emit a checkpoint event.
 </p>
-<p> Note that in most cases, frame events are not really needed; usually, a top-level
- zone can be used to contain the entire frame:
-<br>
+<p>A checkpoint event inserts the absolute time of the last event before the
+ checkpoint. This allows reconstrucing event times from the checkpoint instead of
+ from the start. It also inserts a zero byte into profiling data, which no other
+ event can do. This allows to rewind profiler data without having to go all the way
+ to the start.
 
-<pre class="d_code">{
-    <span class="d_keyword">auto</span> zone = Zone(profiler, <span class="d_string">"frame"</span>);
+</p>
+<p><b>Note:</b><br>
+neither of these options is actually exploited at the moment; but they should
+       be useful for profiling visualizers and when processing massive profiling
+       outputs.</p>
 
-    <span class="d_comment">// Frame code
-</span>}
-</pre>
-<br>
+</dd>
+<dt class="d_decl"><a name="Profiler.zoneStartEvent"></a>nothrow @system uint <a name="zoneStartEvent"></a><span class="ddoc_psymbol">zoneStartEvent</span>(const string <b>info</b>);
+</dt>
+<dd><p>Emit a zone start event, when code enters a zone.
+</p>
+<b>Parameters:</b><div class="pbr"><table class=parms><tr><td valign=top>string <b>info</b></td>
+<td valign=top>Information about the zone (e.g. its name). Will be added as an <b>info</b> event
+        following the zone start event. <b>Must not</b> be empty or longer than 255
+        characters and <b>must not</b> contain zero (<span class="d_inlinecode">'\0'</span>) characters.</td></tr>
+</table></div>
+<b>Returns:</b><div class="pbr">Nesting level of the newly started zone. Must be passed when corresponding
+          zoneEndEvent() is called. Used to ensure child events end before their
+          parent events.
 
- It is possible that frame events will have more specific uses in future, though.</p>
+</div>
+<p><b>Note:</b><br>
+<a name="zoneStartEvent"></a><span class="ddoc_psymbol">zoneStartEvent</span> should only be aleed directly where the Zone struct is not
+       sufficient (i.e. where a zone cannot be wrapped in a scope).</p>
+
+</dd>
+<dt class="d_decl"><a name="Profiler.zoneEndEvent"></a>nothrow @system void <a name="zoneEndEvent"></a><span class="ddoc_psymbol">zoneEndEvent</span>(const uint <b>nestLevel</b>);
+</dt>
+<dd><p>Emit a zone end event, when code exits a zone.
+</p>
+<b>Parameters:</b><div class="pbr"><table class=parms><tr><td valign=top>uint <b>nestLevel</b></td>
+<td valign=top>Nesting level of the zone. Used to check that zones are exited in the
+             correct (hierarchical) order, i.e. a child zone must be ended before
+             its parent zone.</td></tr>
+</table></div>
+<p><b>Note:</b><br>
+<a name="zoneEndEvent"></a><span class="ddoc_psymbol">zoneEndEvent</span> should only be called directly where the Zone struct is not
+       sufficient (i.e. where a zone cannot be wrapped in a scope).</p>
 
 </dd>
 <dt class="d_decl"><a name="Profiler.reset"></a>nothrow @safe void <a name="reset"></a><span class="ddoc_psymbol">reset</span>();
@@ -236,6 +270,13 @@ Accessing profile data from an out-of-space profiler or in the middle of a zone 
 <dd><p>Get the raw data recorded by the profiler.
 </p>
 <p>This is a slice to the buffer passed to Profiler's constructor.</p>
+
+</dd>
+<dt class="d_decl"><a name="Profiler.zoneNestLevel"></a>const pure nothrow @nogc @safe uint <a name="zoneNestLevel"></a><span class="ddoc_psymbol">zoneNestLevel</span>();
+</dt>
+<dd><p>Get the nest level of the current zone, if any.
+</p>
+<p>0 means the profiler is not in any zone.</p>
 
 </dd>
 </dl>

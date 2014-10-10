@@ -4,13 +4,13 @@
 <html lang='en'>
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" >
-<title>tharsis.prof.ranges - Tharsis.prof 0.1 API documentation</title>
+<title>tharsis.prof.ranges - Tharsis.prof 0.4 API documentation</title>
 <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 
 <body><div id="top">
 <div id="header">
-<a id="main-heading" href="index.html">Tharsis.prof 0.1 API documentation</a>
+<a id="main-heading" href="index.html">Tharsis.prof 0.4 API documentation</a>
 </div>
 </div>
 
@@ -23,6 +23,9 @@
 </div>
 <div class="navblock">
 <ul><li><a href="index.html">Main page</a></li>
+<li><a href="tharsis.prof.chunkyeventlist.html">tharsis.prof.chunkyeventlist</a></li>
+<li><a href="tharsis.prof.csv.html">tharsis.prof.csv</a></li>
+<li><a href="tharsis.prof.despikersender.html">tharsis.prof.despikersender</a></li>
 <li><a href="tharsis.prof.profiler.html">tharsis.prof.profiler</a></li>
 <li><a href="tharsis.prof.ranges.html">tharsis.prof.ranges</a></li>
 </ul>
@@ -45,9 +48,9 @@
 <dd><p>Event ID or type.</p>
 
 </dd>
-<dt class="d_decl"><a name="Event.startTime"></a>ulong <a name="startTime"></a><span class="ddoc_psymbol">startTime</span>;
+<dt class="d_decl"><a name="Event.time"></a>ulong <a name="time"></a><span class="ddoc_psymbol">time</span>;
 </dt>
-<dd><p>Start time of the event since recording started in hectonanoseconds.</p>
+<dd><p>Time of the event since recording started in hectonanoseconds.</p>
 
 </dd>
 <dt class="d_decl"><a name="Event.info"></a>const(char)[] <a name="info"></a><span class="ddoc_psymbol">info</span>;
@@ -196,23 +199,25 @@
 </p>
 <b>Examples:</b><div class="pbr"><pre class="d_code">
 <span class="d_comment">// Count the number of times each zone was entered.
-</span><span class="d_keyword">auto</span> storage  = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[Profiler.maxEventBytes + 128];
+</span>
+<span class="d_keyword">import</span> tharsis.prof;
+
+<span class="d_keyword">auto</span> storage  = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[Profiler.maxEventBytes + 128];
 <span class="d_keyword">auto</span> profiler = <span class="d_keyword">new</span> Profiler(storage);
 
 <span class="d_keyword">foreach</span>(i; 0 .. 3)
 {
     <span class="d_keyword">import</span> std.datetime;
     <span class="d_keyword">auto</span> startTime = Clock.currStdTime();
-    profiler.frameEvent();
-    <span class="d_comment">// Wait long enough to trigger a long time span event
-</span>    <span class="d_keyword">while</span>(Clock.currStdTime() - startTime &lt;= Profiler.longTimeSpan) { <span class="d_keyword">continue</span>; }
+    <span class="d_comment">// Wait long enough so the time gap is represented by &gt;2 bytes.
+</span>    <span class="d_keyword">while</span>(Clock.currStdTime() - startTime &lt;= 65536) { <span class="d_keyword">continue</span>; }
     <span class="d_keyword">auto</span> zone1 = Zone(profiler, <span class="d_string">"zone1"</span>);
     {
         <span class="d_keyword">auto</span> zone11 = Zone(profiler, <span class="d_string">"zone11"</span>);
     }
     startTime = Clock.currStdTime();
-    <span class="d_comment">// Wait long enough to trigger a short time span event
-</span>    <span class="d_keyword">while</span>(Clock.currStdTime() - startTime &lt;= Profiler.timeSpan) { <span class="d_keyword">continue</span>; }
+    <span class="d_comment">// Wait long enough so the time gap is represented by &gt;1 bytes.
+</span>    <span class="d_keyword">while</span>(Clock.currStdTime() - startTime &lt;= 255) { <span class="d_keyword">continue</span>; }
     {
         <span class="d_keyword">auto</span> zone12 = Zone(profiler, <span class="d_string">"zone12"</span>);
     }
@@ -243,6 +248,8 @@
 <span class="d_comment">// This example also uses C malloc/free, std.typecons.scoped and std.container.Array
 </span><span class="d_comment">// to show how to do this without using the GC.
 </span>
+<span class="d_keyword">import</span> tharsis.prof;
+
 <span class="d_keyword">const</span> storageLength = Profiler.maxEventBytes + 2048;
 
 <span class="d_keyword">import</span> core.stdc.stdlib;
@@ -271,7 +278,7 @@
 }
 
 <span class="d_comment">// Accumulate data into this struct.
-</span><span class="d_keyword">struct</span> ZoneInfo
+</span><span class="d_keyword">struct</span> ZoneStats
 {
     <span class="d_keyword">ulong</span> minDuration;
     <span class="d_keyword">ulong</span> maxDuration;
@@ -283,11 +290,11 @@
 </span>}
 
 <span class="d_comment">// Gets min, max, total duration as well as the number of times the zone was entered.
-</span>ZoneInfo accum(ZoneInfo* aPtr, <span class="d_keyword">ref</span> <span class="d_keyword">const</span> ZoneData z) <span class="d_keyword">pure</span> <span class="d_keyword">nothrow</span> @nogc
+</span>ZoneStats accum(ZoneStats* aPtr, <span class="d_keyword">ref</span> <span class="d_keyword">const</span> ZoneData z) <span class="d_keyword">pure</span> <span class="d_keyword">nothrow</span> @nogc
 {
-    <span class="d_keyword">if</span>(aPtr <span class="d_keyword">is</span> <span class="d_keyword">null</span>) { <span class="d_keyword">return</span> ZoneInfo(z.duration, z.duration, 1); }
+    <span class="d_keyword">if</span>(aPtr <span class="d_keyword">is</span> <span class="d_keyword">null</span>) { <span class="d_keyword">return</span> ZoneStats(z.duration, z.duration, 1); }
 
-    <span class="d_keyword">return</span> ZoneInfo(min(aPtr.minDuration, z.duration),
+    <span class="d_keyword">return</span> ZoneStats(min(aPtr.minDuration, z.duration),
                     max(aPtr.maxDuration, z.duration),
                     aPtr.instanceCount + 1);
 }
@@ -317,6 +324,8 @@
 <span class="d_comment">// This example also uses C malloc/free, std.typecons.scoped and std.container.Array
 </span><span class="d_comment">// to show how to do this without using the GC.
 </span>
+<span class="d_keyword">import</span> tharsis.prof;
+
 <span class="d_keyword">const</span> storageLength = Profiler.maxEventBytes + 2048;
 
 <span class="d_keyword">import</span> core.stdc.stdlib;
@@ -395,6 +404,13 @@ writeln(accumulated.front.duration / <span class="d_keyword">cast</span>(<span c
 </p>
 
 </dd>
+<dt class="d_decl"><a name="buildZoneData"></a>pure nothrow @nogc @safe ZoneData <a name="buildZoneData"></a><span class="ddoc_psymbol">buildZoneData</span>(ZInfo)(const(ZInfo)[] <b>stack</b>, ulong <b>endTime</b>);
+</dt>
+<dd><p>Creates ZoneData from a parent zone info stack and end time.
+</p>
+<p>The ZInfo type must have all ZoneInfo members (e.g. by wrapping ZoneInfo with alias this).</p>
+
+</dd>
 <dt class="d_decl"><a name="ZoneRange"></a>struct <a name="ZoneRange"></a><span class="ddoc_psymbol">ZoneRange</span>(ERange);
 </dt>
 <dd><p>Light-weight range that iterates over zones in profile data.
@@ -407,7 +423,7 @@ writeln(accumulated.front.duration / <span class="d_keyword">cast</span>(<span c
 <br>
 
  ForwardRange of ZoneData ordered by <i>end time</i>.
- Doesn't allocate any memory.
+ Doesn't allocate any heap memory.
 <br>
 
 <br>
@@ -424,6 +440,8 @@ writeln(accumulated.front.duration / <span class="d_keyword">cast</span>(<span c
 <span class="d_comment">// Filter zones based on the info string. Useful to determine durations of only
 </span><span class="d_comment">// certain zones.
 </span>
+<span class="d_keyword">import</span> tharsis.prof;
+
 <span class="d_keyword">auto</span> storage  = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[Profiler.maxEventBytes + 2048];
 <span class="d_keyword">auto</span> profiler = <span class="d_keyword">new</span> Profiler(storage);
 
@@ -458,6 +476,8 @@ writeln(accumulated.front.duration / <span class="d_keyword">cast</span>(<span c
 <span class="d_comment">// This example also uses C malloc/free, std.typecons.scoped and std.container.Array
 </span><span class="d_comment">// to show how to do this without using the GC.
 </span>
+<span class="d_keyword">import</span> tharsis.prof;
+
 <span class="d_keyword">const</span> storageLength = Profiler.maxEventBytes + 1024 * 1024 * 2;
 
 <span class="d_keyword">import</span> core.stdc.stdlib;
@@ -581,16 +601,18 @@ topLevelArray[].sort!((a, b) =&gt; a.duration &gt; b.duration);
  ZoneRange) on top of.
 <br>
 
- Doesn't allocate any memory.</p>
+ Doesn't allocate any heap memory.</p>
 <b>Examples:</b><div class="pbr"><pre class="d_code">
 <span class="d_comment">// Filter zones based on the info string. Useful to determine durations of only
 </span><span class="d_comment">// certain zones.
 </span>
+<span class="d_keyword">import</span> tharsis.prof;
+
 <span class="d_keyword">auto</span> storage  = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[Profiler.maxEventBytes + 2048];
 <span class="d_keyword">auto</span> profiler = <span class="d_keyword">new</span> Profiler(storage);
 
-<span class="d_comment">// Simulate 16 'frames'
-</span><span class="d_keyword">foreach</span>(frame; 0 .. 16)
+<span class="d_comment">// Simulate 8 'frames'
+</span><span class="d_keyword">foreach</span>(frame; 0 .. 8)
 {
     Zone topLevel = Zone(profiler, <span class="d_string">"frame"</span>);
 
@@ -616,10 +638,10 @@ topLevelArray[].sort!((a, b) =&gt; a.duration &gt; b.duration);
 
 <span class="d_comment">// Get a range of only the events with start time between 1000 and 5000 (hectonanoseconds)
 </span><span class="d_comment">//
-</span><span class="d_comment">// This doesn't filter anything or allocate memory; filtering only happens once the
+</span><span class="d_comment">// This doesn't filter anything or allocate; filtering only happens once the
 </span><span class="d_comment">// range is iterated over (but if we did want to do the filtering right now, e.g. to
 </span><span class="d_comment">// get an array of filtered results, we'd suffix this with ".array")
-</span><span class="d_keyword">auto</span> filtered = events.filter!(e =&gt; e.startTime &gt; 1500 &amp;&amp; e.startTime &lt; 2000);
+</span><span class="d_keyword">auto</span> filtered = events.filter!(e =&gt; e.time &gt; 1500 &amp;&amp; e.time &lt; 2000);
 <span class="d_comment">// Here, we print the IDs of events between 10000 and 50000 hectonanoseconds
 </span><span class="d_keyword">foreach</span>(id; filtered.map!(e =&gt; e.id))
 {
@@ -659,6 +681,14 @@ topLevelArray[].sort!((a, b) =&gt; a.duration &gt; b.duration);
 <dt class="d_decl"><a name="EventRange.save"></a>const pure nothrow @nogc @property @safe EventRange <a name="save"></a><span class="ddoc_psymbol">save</span>();
 </dt>
 <dd><p>Get a copy of the range in its current state.</p>
+
+</dd>
+<dt class="d_decl"><a name="EventRange.bytesLeft"></a>package const pure nothrow @nogc @safe size_t <a name="bytesLeft"></a><span class="ddoc_psymbol">bytesLeft</span>();
+</dt>
+<dd><p>Get the number of remaining bytes in the underlying profile data.
+</p>
+<p>Used by code in tharsis.prof package to determine end position of an event in
+ profile data without increasing memory overhead of EventRange.</p>
 
 </dd>
 </dl>
