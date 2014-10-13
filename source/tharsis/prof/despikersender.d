@@ -90,12 +90,12 @@ private:
      * right at the edge of being acceptable... if we ever increase maxProfilers above
      * 1024, we should use malloc.
      */
-    ulong[1024] bytesSentPerProfilerStorage_;
+    size_t[1024] bytesSentPerProfilerStorage_;
     /* Number of bytes of profiling data sent from each profiler in profilers_.
      *
      * Reset by reset().
      */
-    ulong[] bytesSentPerProfiler_;
+    size_t[] bytesSentPerProfiler_;
 
     // Are we sending data to a running Despiker right now?
     bool sending_ = false;
