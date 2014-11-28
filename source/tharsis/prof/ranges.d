@@ -626,14 +626,21 @@ private:
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
                            "Zone nesting too deep; zone stack overflow.");
-                    zoneStack_[zoneStackDepth_++] = ZoneInfo(nextID_++, lastEventTime_);
+                    zoneStack_[zoneStackDepth_++] = ZoneInfo(nextID_++, lastEventTime_, null);
                     break;
                 case ZoneEnd: return;
                 // If an info event has the same start time as the current zone, it's info
                 // about the current zone.
                 case Info:
                     auto curZone = &zoneStack_[zoneStackDepth_ - 1];
-                    if(event.time == curZone.startTime) { curZone.info = event.info; }
+                    // The curZone.info == null check is necessary because we want the
+                    // *first* info event that follows a zone event (there may be more
+                    // info events with the same startTime, e.g. after a variable event
+                    // following the zone start event)
+                    if(curZone.info == null && event.time == curZone.startTime)
+                    {
+                        curZone.info = event.info;
+                    }
                     break;
             }
         }
