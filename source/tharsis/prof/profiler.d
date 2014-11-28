@@ -210,7 +210,7 @@ public:
         {
             nestLevel_ = profiler.zoneStartEvent(info);
         }
-        profiler_  = profiler;
+        profiler_ = profiler;
     }
 
     /** Destructor. Emits the zone end event with the Profiler.
