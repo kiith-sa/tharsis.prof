@@ -4,13 +4,13 @@
 <html lang='en'>
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" >
-<title>tharsis.prof.profiler - Tharsis.prof 0.4 API documentation</title>
+<title>tharsis.prof.profiler - Tharsis.prof 0.5 API documentation</title>
 <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 
 <body><div id="top">
 <div id="header">
-<a id="main-heading" href="index.html">Tharsis.prof 0.4 API documentation</a>
+<a id="main-heading" href="index.html">Tharsis.prof 0.5 API documentation</a>
 </div>
 </div>
 
@@ -26,6 +26,7 @@
 <li><a href="tharsis.prof.chunkyeventlist.html">tharsis.prof.chunkyeventlist</a></li>
 <li><a href="tharsis.prof.csv.html">tharsis.prof.csv</a></li>
 <li><a href="tharsis.prof.despikersender.html">tharsis.prof.despikersender</a></li>
+<li><a href="tharsis.prof.event.html">tharsis.prof.event</a></li>
 <li><a href="tharsis.prof.profiler.html">tharsis.prof.profiler</a></li>
 <li><a href="tharsis.prof.ranges.html">tharsis.prof.ranges</a></li>
 </ul>
@@ -118,12 +119,17 @@ Tharsis.prof measures time in D 'hectonanoseconds', or tenths of a microsecond. 
 </table></div>
 
 </dd>
-</dl>
-</dd>
-<dt class="d_decl"><a name="EventID"></a>enum <a name="EventID"></a><span class="ddoc_psymbol">EventID</span>: ubyte;
+<dt class="d_decl"><a name="Zone.variableEvent"></a>pure nothrow @nogc @safe void <a name="variableEvent"></a><span class="ddoc_psymbol">variableEvent</span>(string name, V)(const V <b>value</b>);
 </dt>
-<dd><p>Types of events recorded by Profiler.</p>
+<dd><p>A shortcut to call <a name="variableEvent"></a><span class="ddoc_psymbol">variableEvent</span>() of the zone's profiler, if any.
+</p>
+<p>If a <b>null</b> Profiler has been passed to the Zone's constructor, this call is ignored.
 
+</p>
+<b>See Also:</b><div class="pbr">Profiler.<a name="variableEvent"></a><span class="ddoc_psymbol">variableEvent</span>().</div>
+
+</dd>
+</dl>
 </dd>
 <dt class="d_decl"><a name="Profiler"></a>class <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span>;
 </dt>
@@ -163,7 +169,65 @@ Accessing profile data from an out-of-space profiler or in the middle of a zone 
  Depending on the worload and number of zones, <a name="Profiler"></a><span class="ddoc_psymbol">Profiler</span> can eat through assigned memory
  rather quickly.  With 10000 zones at 120 FPS the overhead is going to be around 14 MiB
  <b>per second</b>.</p>
+<b>Examples:</b><div class="pbr"><pre class="d_code">
+<span class="d_keyword">ubyte</span>[] storage = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[<span class="d_psymbol">Profiler</span>.maxEventBytes + 2048];
+<span class="d_keyword">auto</span> profiler = <span class="d_keyword">new</span> <span class="d_psymbol">Profiler</span>(storage);
 
+<span class="d_comment">// Simulate 16 'frames'
+</span><span class="d_keyword">foreach</span>(frame; 0 .. 16)
+{
+    Zone topLevel = Zone(profiler, <span class="d_string">"frame"</span>);
+    <span class="d_comment">// Record a variable event (useful for tracking FPS, entity count, network
+</span>    <span class="d_comment">// traffic, etc.). Only uint, int and float supported at the moment.
+</span>    profiler.variableEvent!<span class="d_string">"frame"</span> = <span class="d_keyword">cast</span>(<span class="d_keyword">uint</span>)frame;
+
+    <span class="d_comment">// Simulate frame overhead. Replace this with your frame code.
+</span>    {
+        Zone nested1 = Zone(profiler, <span class="d_string">"frameStart"</span>);
+        <span class="d_keyword">foreach</span>(i; 0 .. 1000) { <span class="d_keyword">continue</span>; }
+    }
+    {
+        Zone nested2 = Zone(profiler, <span class="d_string">"frameCore"</span>);
+        <span class="d_keyword">foreach</span>(i; 0 .. 10000) { <span class="d_keyword">continue</span>; }
+    }
+}
+
+<span class="d_comment">// see tharsis.profiler.ranges for how to process recorded data
+</span></pre>
+</div><b>Examples:</b><div class="pbr"><pre class="d_code">
+<span class="d_comment">// This example uses C malloc/free and std.typecons.scoped to show how to use Profiler
+</span><span class="d_comment">// without GC allocations.
+</span>
+<span class="d_keyword">const</span> storageLength = <span class="d_psymbol">Profiler</span>.maxEventBytes + 2048;
+
+<span class="d_keyword">import</span> core.stdc.stdlib;
+<span class="d_comment">// A simple typed-slice malloc wrapper function would avoid the ugly cast/slicing.
+</span><span class="d_keyword">ubyte</span>[] storage  = (<span class="d_keyword">cast</span>(<span class="d_keyword">ubyte</span>*)malloc(storageLength))[0 .. storageLength];
+<span class="d_keyword">scope</span>(exit) { free(storage.ptr); }
+
+<span class="d_keyword">import</span> std.typecons;
+<span class="d_keyword">auto</span> profiler = scoped!<span class="d_psymbol">Profiler</span>(storage);
+
+<span class="d_comment">// std.typecons.scoped! stores the Profiler on the stack.
+</span><span class="d_comment">// Simulate 16 'frames'
+</span><span class="d_keyword">foreach</span>(frame; 0 .. 16)
+{
+    Zone topLevel = Zone(profiler, <span class="d_string">"frame"</span>);
+
+    <span class="d_comment">// Simulate frame overhead. Replace this with your frame code.
+</span>    {
+        Zone nested1 = Zone(profiler, <span class="d_string">"frameStart"</span>);
+        <span class="d_keyword">foreach</span>(i; 0 .. 1000) { <span class="d_keyword">continue</span>; }
+    }
+    {
+        Zone nested2 = Zone(profiler, <span class="d_string">"frameCore"</span>);
+        <span class="d_keyword">foreach</span>(i; 0 .. 10000) { <span class="d_keyword">continue</span>; }
+    }
+}
+
+<span class="d_comment">// see tharsis.profiler.ranges for how to process recorded data
+</span></pre>
+</div>
 <dl><dt class="d_decl"><a name="Profiler.Diagnostics"></a>struct <a name="Diagnostics"></a><span class="ddoc_psymbol">Diagnostics</span>;
 </dt>
 <dd><p><a name="Diagnostics"></a><span class="ddoc_psymbol">Diagnostics</span> used to profile the profiler.</p>
@@ -219,6 +283,31 @@ Accessing profile data from an out-of-space profiler or in the middle of a zone 
 neither of these options is actually exploited at the moment; but they should
        be useful for profiling visualizers and when processing massive profiling
        outputs.</p>
+
+</dd>
+<dt class="d_decl"><a name="Profiler.variableEvent"></a>pure nothrow @nogc @trusted void <a name="variableEvent"></a><span class="ddoc_psymbol">variableEvent</span>(string name, V)(const V <b>value</b>);
+</dt>
+<dd><p>Emit a variable event.
+</p>
+<p>Used to keep track of various variables that change over time, e.g. FPS, network
+ traffic, entity count...; Despiker supports viewing the value of a variable once
+ per frame.
+
+</p>
+<b>Parameters:</b><div class="pbr"><table class=parms><tr><td valign=top>name</td>
+<td valign=top>Variable name (specified at compile-time). The variable event itself does
+         not contain the name; the name is stored in an info event immediately
+         after the variable event.</td></tr>
+<tr><td valign=top>V</td>
+<td valign=top>Variable type. Only int, uint and float are supported at the moment.</td></tr>
+<tr><td valign=top>V value</td>
+<td valign=top>Value of the variable</td></tr>
+</table></div>
+<p><b>Example:</b><br>
+<pre class="d_code"><span class="d_comment">// Profiler profiler
+</span>profiler.<span class="d_psymbol">variableEvent</span>!<span class="d_string">"FPS"</span>(4.5f);
+</pre>
+</p>
 
 </dd>
 <dt class="d_decl"><a name="Profiler.zoneStartEvent"></a>nothrow @system uint <a name="zoneStartEvent"></a><span class="ddoc_psymbol">zoneStartEvent</span>(const string <b>info</b>);
