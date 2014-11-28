@@ -662,7 +662,7 @@ public:
             alias depth = zoneStackDepth_;
             with(EventID) final switch(event.id)
             {
-                case Checkpoint: break;
+                case Checkpoint, Variable: break;
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
                            "Zone nesting too deep; zone stack overflow.");
@@ -732,6 +732,7 @@ unittest
         assert(frame == 0 || zone.info == "frame");
         // "frameStart" from current frame
         if(!chunkyZones.generate(zone)) { assert(false); }
+
         assert(zone.info == "frameStart" &&
                zone.id == frame * 3 + 2 &&
                zone.parentID == frame * 3 + 1

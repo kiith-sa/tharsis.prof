@@ -612,6 +612,7 @@ private:
             with(EventID) final switch(event.id)
             {
                 case Checkpoint: break;
+                case Variable: break;
                 case ZoneStart:
                     assert(zoneStackDepth_ < maxStackDepth,
                            "Zone nesting too deep; zone stack overflow.");
@@ -879,7 +880,7 @@ private:
         }
 
         parseTimeBytes(timeBytes);
-        front_.info = null;
+        front_.info_ = null;
 
         with(EventID) switch(front_.id)
         {
@@ -898,10 +899,45 @@ private:
                        "Invalid profiling data: info event not followed by string length");
                 const infoBytes = profileData_.front;
                 profileData_.popFront;
-                front_.info = cast(const(char)[])profileData_[0 .. infoBytes];
+                front_.info_ = cast(const(char)[])profileData_[0 .. infoBytes];
+
                 assert(profileData_.length >= infoBytes,
                        "Invalid profiling data: info event not followed by info string");
                 profileData_ = profileData_[infoBytes .. $];
+                return;
+            // Variable is followed by variable type and 7-bit encoded value.
+            case Variable:
+                const ubyte type = profileData_.front;
+                profileData_.popFront();
+                bool knownType = allVariableTypes.canFind(type);
+                assert(knownType, "Variable event has unknown type");
+                front_.var_.type_ = cast(VariableType)type;
+
+                // Decode a 7-bit variable value at the front of profileData_.
+                V decode(V)() @trusted pure nothrow @nogc
+                {
+                    enum VType = variableType!V;
+                    enum encBytes = variable7BitLengths[VType];
+                    ubyte[encBytes] encoded = profileData_[0 .. encBytes];
+                    V[1] decoded;
+                    decode7Bit(encoded, cast(ubyte[])(decoded[]));
+                    profileData_ = profileData_[encBytes .. $];
+
+                    import std.system;
+                    if(std.system.endian != Endian.bigEndian)
+                    {
+                        import tinyendian;
+                        swapByteOrder(decoded[]);
+                    }
+                    return decoded[0];
+                }
+
+                final switch(front_.var_.type_)
+                {
+                    case VariableType.Int:   front_.var_.int_   = decode!int;   break;
+                    case VariableType.Uint:  front_.var_.uint_  = decode!uint;  break;
+                    case VariableType.Float: front_.var_.float_ = decode!float; break;
+                }
                 return;
             default: assert(false, "Unknown event ID");
         }
