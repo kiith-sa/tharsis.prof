@@ -38,6 +38,9 @@ unittest
     foreach(frame; 0 .. 16)
     {
         Zone topLevel = Zone(profiler, "frame");
+        // Record a variable event (useful for tracking FPS, entity count, network
+        // traffic, etc.). Only uint, int and float supported at the moment.
+        profiler.variableEvent!"frame" = cast(uint)frame;
 
         // Simulate frame overhead. Replace this with your frame code.
         {
@@ -687,6 +690,7 @@ unittest
             {
                 auto zone12 = Zone(profiler, "zone12");
             }
+            profiler.variableEvent!"var_i" = cast(float)i;
             profiler.checkpointEvent();
         }
     }
@@ -709,8 +713,13 @@ unittest
 
             assert(evts.front.id == ZoneStart);                           evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "zone12"); evts.popFront();
-            const time = evts.front.time;
             assert(evts.front.id == ZoneEnd);                             evts.popFront();
+
+            const time = evts.front.time;
+            assert(evts.front.id == Variable &&
+                   evts.front.var.type == VariableType.Float &&
+                   evts.front.var.varFloat == cast(float)i);              evts.popFront();
+            assert(evts.front.id == Info && evts.front.info == "var_i");  evts.popFront();
 
             // Checkpoint start time must match the previous event.
             assert(evts.front.time == time);
