@@ -201,7 +201,7 @@ public:
      * info     = Zone information string. Used to recognize zones when parsing and
      *            accumulating profile data. Can be the 'name' of the zone, possibly with
      *            some extra _info (e.g. "frame": entire frame or "batch 5": fifth draw
-     *            batch). $(B Must not) be empty or longer than 255 characters and 
+     *            batch). $(B Must not) be empty or longer than 255 characters and
      *            $(B must not) contain zero ($(D '\0')) characters.
      */
     this(Profiler profiler, string info) @trusted nothrow
@@ -536,13 +536,12 @@ private:
         return time >> timeByteBits;
     }
 
-    /* Write an event ID and bytes specifying the time gap since the last event.
+    /* Write an event ID and bytes specifying the time left (gap) since the last event.
      *
-     * Event ID is packed into a single byte together with the count of time gap bytes
-     * (5 lower bits for event ID, 3 higher bits for byte count) This byte is followed
-     * by a number of time gap bytes. Each time gap byte encodes 7 bits of the time gap
-     * (the topmost bit is always 1 to ensure time gap bytes are never 0 (to avoid
-     * confusion with checkpoint bytes, which are 0)). The first time gap byte stores the
+     * Event ID is packed *time gap byte count* into a byte (low 5 bits for event ID, high
+     * 3 bits for byte count). This byte is followed by time gap bytes, each of which
+     * stores 7 time gap bits (topmost bit is always 1 to ensure the bytes are never 0, to
+     * avoid confusion with checkpoint bytes, which are 0). The first byte stores the
      * lowest 7 bits of the time gap, second stores the next 7 bits, etc.
      */
     void eventWithTime(EventID id, ulong timeLeft) @trusted pure nothrow @nogc
@@ -673,7 +672,7 @@ unittest
         auto zones = profiler.profileData.zoneRange;
         assert(zones.walkLength == 9, "Unexpected number of zones");
 
-        // Check that zones have expected nestring, infos and time ordering.
+        // Check that zones have expected nesting, infos and time ordering.
         foreach(i; 0 .. 3)
         {
             const z11 = zones.front; zones.popFront();

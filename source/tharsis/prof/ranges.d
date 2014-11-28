@@ -59,7 +59,7 @@ struct ZoneData
  *
  * Durations and start times of accumulated zones are summed into $(D zoneData.duration)
  * and $(D zoneData.startTime). $(D id), $(D parentID) and $(D nestLevel) are updated so
- * the elements of $(D accumulatedZoneRange) can still form trees just like elements of 
+ * the elements of $(D accumulatedZoneRange) can still form trees just like elements of
  * the $(D ZoneRange) that was accumulated.
  */
 struct AccumulatedZoneData(alias accumulate)
@@ -81,19 +81,18 @@ bool defaultMatch(const(char)[] info1, const(char)[] info2) @safe pure nothrow @
 
 /** Returns a range that accumulates (merges) matching zones from one or more zone ranges.
  *
- * On each nesting level from top to bottom, finds zones that are $(B match) based on
- * given match function and merges them into one zone, $(B accumulating) data from merged
- * zone using the accumulate function. Merged zones contain summed durations and start
- * times. The default match function compares info strings of two zones for equality.
+ * On each nesting level from top to bottom, finds zones that $(B match) based on given
+ * match function and merges them into one zone, $(B accumulating) data from merged zone
+ * using the accumulate function. Merged zones contain summed durations and start times.
+ * The default match function compares info strings of two zones for equality.
  *
  *
- * This is useful for example to get a 'total' of all frames elapsed while the profiler
- * was running. If each frame has one top-level zone and they have matching info strings,
- * the top-level zones will be merged, then all zones within those top-level zones, and so
- * on. The result will be a zone range representing a single tree. The accumulate function
- * could be used, for example, to calculate the maximum duration of matching zones to
- * calculate a 'worst case frame scenario', or to calculate the number of times each zone
- * was entered, or even multiple things at the same time.
+ * Can be used e.g. to get a 'total' of all recorded frames. If each frame has one
+ * top-level zone with matching info strings, the top-level zones are merged, then
+ * matching children of these zones, and so on. The result is a zone range representing
+ * a single tree. The accumulate function can be used, for example, to calculate max
+ * duration of matching zones, getting a 'worst case frame scenario', to calculate the
+ * number of times each zone was entered, or even multiple things at the same time.
  *
  * Params:
  *
@@ -110,9 +109,9 @@ bool defaultMatch(const(char)[] info1, const(char)[] info2) @safe pure nothrow @
  *              Must be $(D pure nothrow @nogc).
  *
  *              An example use-case for a custom match() function is to accumulate related
- *              zones that have a slightly different names (e.g. numbered draw batches),
- *              or on the other hand, to prevent merging zones with identical names
- *              (e.g. to see each individual draw as a separate zone).
+ *              zones with slightly different names (e.g. numbered draw batches), or
+ *              conversely, to prevent merging zones with identical names (e.g. to see
+ *              each individual draw as a separate zone).
  *
  * storage    = Array to use for temporary storage during accumulation $(B as well as)
  *              storage in the returned range. Must be long enough to hold zones from all
@@ -187,9 +186,9 @@ auto accumulatedZoneRange(alias accumulate, alias match = defaultMatch, ZRange)
     storage = storage[0 .. i];
 
     // Complexity of this is O(log(N) * N^2 + 2N^2) == O(log(N) * N^2).
-    // TODO: We could probably speed this up significantly by sorting storage by level, or
-    //       oven by level first and parent ID second. That would make finding matching
-    //       nodes much faster. 2014-08-31
+    // TODO: We could probably speed this up greatly by sorting storage by level, or even
+    //       by level first and parent ID second. That would make finding matching nodes
+    //       much faster. 2014-08-31
 
     // Start with merging topmost zones with no parents, then merge their children, etc.
     // All zones in a single level that match are accumulated into one element. parentID
@@ -215,7 +214,7 @@ auto accumulatedZoneRange(alias accumulate, alias match = defaultMatch, ZRange)
                 // Skip if the zones don't match.
                 if(e1.parentID != e2.parentID || !match(e1.info, e2.info)) { continue; }
 
-                // This happens at most once per zone (a zone can be removed at most once).
+                // Below code runs at most once per zone (a zone can be removed at most once).
 
                 e1.accumulated  = accumulate(&(e1.accumulated), e2.zoneData);
                 e1.duration    += e2.duration;
@@ -500,9 +499,8 @@ package ZoneData buildZoneData(ZInfo)(const(ZInfo)[] stack, ulong endTime)
 
 /** Light-weight range that iterates over zones in profile data.
  *
- * Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm/std.range
- * wrapper around an EventRange). Can also be constructed from raw profile data using
- * eventRange().
+ * Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm wrapper
+ * around an EventRange). Can also be constructed from raw profile data using eventRange().
  *
  *
  * ForwardRange of ZoneData ordered by $(I end time).
@@ -891,7 +889,7 @@ private:
         {
             case ZoneStart, ZoneEnd: return;
             case Checkpoint:
-                // A checkpoint contains absolute start time. 
+                // A checkpoint contains absolute start time.
                 // This is not really necessary ATM, (relative time would get us the same
                 // result as this code), but allow 'disjoint' checkpoints that change the
                 // 'current time' in future.
