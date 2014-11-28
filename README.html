@@ -357,7 +357,7 @@ compatibility <strong>breaking changes</strong> in future.</p>
 <h1>Getting started</h1>
 <p>Assuming you use <a class="reference external" href="http://code.dlang.org/about">dub</a>, add this line:</p>
 <pre class="literal-block">
-&quot;tharsis.prof&quot;: { &quot;version&quot; : &quot;~&gt;0.1.0&quot; }
+&quot;tharsis.prof&quot;: { &quot;version&quot; : &quot;~&gt;0.5.0&quot; }
 </pre>
 <p>to the <tt class="docutils literal">&quot;dependencies&quot;</tt> in your project's <tt class="docutils literal">dub.json</tt>/<tt class="docutils literal">package.json</tt>.</p>
 <p>Tharsis.prof requires DMD 2.066 or equivalent GDC/LDC.</p>
@@ -443,7 +443,7 @@ except for exception handling if sending data to <a class="reference external" h
 <li>Designed to use as little memory as possible in heavy workloads (but it can still use
 quite a lot). <em>Memory usage in light workloads has been improved</em>.</li>
 <li>Uses high-precision clocks (hectonanosecond - tenth of microsecond - precision).</li>
-<li>No dependencies.</li>
+<li>Can be used to record variable values (e.g. FPS) over time.</li>
 </ul>
 </div>
 <div class="section" id="directory-structure">

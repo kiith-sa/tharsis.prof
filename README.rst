@@ -27,7 +27,7 @@ Getting started
 
 Assuming you use `dub <http://code.dlang.org/about>`_, add this line::
 
-   "tharsis.prof": { "version" : "~>0.1.0" }
+   "tharsis.prof": { "version" : "~>0.5.0" }
 
 to the ``"dependencies"`` in your project's ``dub.json``/``package.json``.
 
@@ -124,7 +124,7 @@ Features
 * Designed to use as little memory as possible in heavy workloads (but it can still use
   quite a lot). *Memory usage in light workloads has been improved*.
 * Uses high-precision clocks (hectonanosecond - tenth of microsecond - precision).
-* No dependencies.
+* Can be used to record variable values (e.g. FPS) over time.
 
 
 -------------------
