@@ -82,7 +82,7 @@ void writeCSVTo(ERange, ORange)(ERange events, ORange output)
     }
 }
 
-/// Get a CSVEventRange parsing character data fron input.
+/// Get a CSVEventRange parsing character data from input.
 auto csvEventRange(Range)(Range input) nothrow
 {
     return CSVEventRange!Range(input);
@@ -93,7 +93,7 @@ auto csvEventRange(Range)(Range input) nothrow
  *
  * front() and popFront() may throw ConvException or CSVException.
  */
-private struct CSVEventRange(Range)
+struct CSVEventRange(Range)
 {
 private:
     import std.traits;

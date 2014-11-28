@@ -28,68 +28,7 @@
  * less precise. At least Linux, Windows and OSX should be alright, though.
  */
 module tharsis.prof.profiler;
-///
-unittest
-{
-    ubyte[] storage = new ubyte[Profiler.maxEventBytes + 2048];
-    auto profiler = new Profiler(storage);
 
-    // Simulate 16 'frames'
-    foreach(frame; 0 .. 16)
-    {
-        Zone topLevel = Zone(profiler, "frame");
-        // Record a variable event (useful for tracking FPS, entity count, network
-        // traffic, etc.). Only uint, int and float supported at the moment.
-        profiler.variableEvent!"frame" = cast(uint)frame;
-
-        // Simulate frame overhead. Replace this with your frame code.
-        {
-            Zone nested1 = Zone(profiler, "frameStart");
-            foreach(i; 0 .. 1000) { continue; }
-        }
-        {
-            Zone nested2 = Zone(profiler, "frameCore");
-            foreach(i; 0 .. 10000) { continue; }
-        }
-    }
-
-    // see tharsis.profiler.ranges for how to process recorded data
-}
-///
-unittest
-{
-    // This example uses C malloc/free and std.typecons.scoped to show how to use Profiler
-    // without GC allocations.
-
-    const storageLength = Profiler.maxEventBytes + 2048;
-
-    import core.stdc.stdlib;
-    // A simple typed-slice malloc wrapper function would avoid the ugly cast/slicing.
-    ubyte[] storage  = (cast(ubyte*)malloc(storageLength))[0 .. storageLength];
-    scope(exit) { free(storage.ptr); }
-
-    import std.typecons;
-    auto profiler = scoped!Profiler(storage);
-
-    // std.typecons.scoped! stores the Profiler on the stack.
-    // Simulate 16 'frames'
-    foreach(frame; 0 .. 16)
-    {
-        Zone topLevel = Zone(profiler, "frame");
-
-        // Simulate frame overhead. Replace this with your frame code.
-        {
-            Zone nested1 = Zone(profiler, "frameStart");
-            foreach(i; 0 .. 1000) { continue; }
-        }
-        {
-            Zone nested2 = Zone(profiler, "frameCore");
-            foreach(i; 0 .. 10000) { continue; }
-        }
-    }
-
-    // see tharsis.profiler.ranges for how to process recorded data
-}
 
 import std.algorithm;
 import std.datetime;
@@ -658,6 +597,68 @@ private:
         profileData_[profileDataUsed_ .. profileDataUsed_ + info.length] = cast(ubyte[])info[];
         profileDataUsed_ += info.length;
     }
+}
+///
+unittest
+{
+    ubyte[] storage = new ubyte[Profiler.maxEventBytes + 2048];
+    auto profiler = new Profiler(storage);
+
+    // Simulate 16 'frames'
+    foreach(frame; 0 .. 16)
+    {
+        Zone topLevel = Zone(profiler, "frame");
+        // Record a variable event (useful for tracking FPS, entity count, network
+        // traffic, etc.). Only uint, int and float supported at the moment.
+        profiler.variableEvent!"frame" = cast(uint)frame;
+
+        // Simulate frame overhead. Replace this with your frame code.
+        {
+            Zone nested1 = Zone(profiler, "frameStart");
+            foreach(i; 0 .. 1000) { continue; }
+        }
+        {
+            Zone nested2 = Zone(profiler, "frameCore");
+            foreach(i; 0 .. 10000) { continue; }
+        }
+    }
+
+    // see tharsis.profiler.ranges for how to process recorded data
+}
+///
+unittest
+{
+    // This example uses C malloc/free and std.typecons.scoped to show how to use Profiler
+    // without GC allocations.
+
+    const storageLength = Profiler.maxEventBytes + 2048;
+
+    import core.stdc.stdlib;
+    // A simple typed-slice malloc wrapper function would avoid the ugly cast/slicing.
+    ubyte[] storage  = (cast(ubyte*)malloc(storageLength))[0 .. storageLength];
+    scope(exit) { free(storage.ptr); }
+
+    import std.typecons;
+    auto profiler = scoped!Profiler(storage);
+
+    // std.typecons.scoped! stores the Profiler on the stack.
+    // Simulate 16 'frames'
+    foreach(frame; 0 .. 16)
+    {
+        Zone topLevel = Zone(profiler, "frame");
+
+        // Simulate frame overhead. Replace this with your frame code.
+        {
+            Zone nested1 = Zone(profiler, "frameStart");
+            foreach(i; 0 .. 1000) { continue; }
+        }
+        {
+            Zone nested2 = Zone(profiler, "frameCore");
+            foreach(i; 0 .. 10000) { continue; }
+        }
+    }
+
+    // see tharsis.profiler.ranges for how to process recorded data
 }
 unittest
 {
