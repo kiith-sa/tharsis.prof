@@ -14,8 +14,6 @@ import std.algorithm;
 import std.exception;
 import std.format;
 import std.range;
-
-
 import std.typetuple;
 
 /** Write Events from a range to CSV.

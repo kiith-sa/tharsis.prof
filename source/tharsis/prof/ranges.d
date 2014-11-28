@@ -169,8 +169,8 @@ auto accumulatedZoneRange(alias accumulate, alias match = defaultMatch, ZRange)
     public:
         @safe pure nothrow @nogc:
         // ForwardRange primitives.
-        AccumulatedZone front() const { return array.front; }
-        void popFront()                 { array.popFront;      }
+        AccumulatedZone front() const { return array.front;  }
+        void popFront()               { array.popFront;      }
         bool empty()            const { return array.empty;  }
         @property Range save()  const { return Range(array); }
         // Number of zones in the range.
@@ -866,7 +866,7 @@ private:
         const timeBytes = profileData_.front >> eventIDBits;
         profileData_.popFront();
 
-        assert(profileData_.length >= timeBytes, 
+        assert(profileData_.length >= timeBytes,
                "Invalid profiling data; not long enough to store expected time gap bytes");
 
         // Parses 'time bytes' each encoding 7 bits of a time span value
