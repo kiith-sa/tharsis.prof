@@ -284,8 +284,8 @@ package enum eventIDMask = 0b00011111;
 package enum timeByteBits = 7;
 // Mask of the bits in a time byte used to store the actual time value.
 package enum timeByteMask = 0b01111111;
-// Mask to set the highest bit of a time byte to 1.
-package enum timeByteLastBit = 0b10000000;
+// Mask to set the highest bit of time bytes and other 7-bit encodings to 1.
+package enum lastBit = 0b10000000;
 
 // Number of bytes storing absolute time in a checkpoint event (same format as time bytes).
 package enum checkpointByteCount = 8;
@@ -532,7 +532,7 @@ private:
     ulong addTimeByte(ulong time) @safe pure nothrow @nogc
     {
         // The last bit ensures the resulting byte is never 0
-        profileData_[profileDataUsed_++] = timeByteLastBit | cast(ubyte)(time & timeByteMask);
+        profileData_[profileDataUsed_++] = lastBit | cast(ubyte)(time & timeByteMask);
         return time >> timeByteBits;
     }
 
@@ -718,5 +718,100 @@ unittest
         }
         auto accumStorage = new AccumulatedZoneData!accum[zones.walkLength];
         auto accumulated = accumulatedZoneRange!accum(accumStorage, zones.save);
+    }
+}
+
+
+package:
+
+/* Encode 4 bytes of data into 5 7-bit encoded bytes in target.
+ *
+ * The last bit of each byte in the 7-bit encoding is set to 1. This is used to avoid
+ * zero bytes in e.g. variable events (zero bytes can *only* be used by the
+ * CheckpointEvent, to allow searching for it backwards).
+ *
+ * Params:
+ *
+ * data   = Data to encode.
+ * target = First 5 bytes of target will store the encoded data. Must be at least 5 bytes.
+ *
+ * Returns: A 5-byte slice of target with the encoded data.
+ */
+static ubyte[] encode7Bit(ubyte[4] data, ubyte[] target)
+    @safe pure nothrow @nogc
+{
+    assert(target.length >= 5,
+            "Not enough space to encode a 4 bytes chunk into 7-bit encoding");
+
+    // first 7 bits from first byte
+    ubyte b = lastBit | (data[0] & (0xFF >> 1));
+    target[0] = b;
+    // last bit from first byte (moved 7 to right),
+    // first 6 bits from second byte (moved by 1 to left)
+    b = lastBit | ((data[0] & (0xFF << 7)) >> 7) | ((data[1] & (0xFF >> 2)) << 1);
+    target[1] = b;
+    // last 2 bits from second byte (moved 6 to right),
+    // first 5 bits from third byte (moved 2 to left)
+    b = lastBit | ((data[1] & (0xFF << 6)) >> 6) | ((data[2] & (0xFF >> 3)) << 2);
+    target[2] = b;
+    // last 3 bits from third byte (moved 5 to right),
+    // first 4 bits from fourth byte (moved 3 to left)
+    b = lastBit | ((data[2] & (0xFF << 5)) >> 5) | ((data[3] & (0xFF >> 4)) << 3);
+    target[3] = b;
+    // last 4 bits from fourth byte (moved 4 to right)
+    b = lastBit | ((data[3] & (0xFF << 4)) >> 4);
+    target[4] = b;
+
+    return target[0 .. 5];
+}
+
+/* Decoded 4 bytes of data stored in 5 bytes of 7-bit encoded data.
+ *
+ * Params:
+ *
+ * data   = Data to decode.
+ * target = First 4 bytes of target will store the decoded data. Must be at least 4 bytes.
+ *
+ * Returns: A 4-byte slice of target with the encoded data.
+ *
+ * See_Also: encode7Bit
+ */
+static ubyte[] decode7Bit(ubyte[5] encoded, ubyte[] target)
+    @safe pure nothrow @nogc
+{
+    assert(target.length >= 4,
+            "Not enough space to decode a 5-byte chunk encoded in 7-bit encoding");
+
+    target[0] = (encoded[0] & 0b01111111)        | ((encoded[1] & 0b00000001) << 7);
+    target[1] = ((encoded[1] & 0b01111110) >> 1) | ((encoded[2] & 0b00000011) << 6);
+    target[2] = ((encoded[2] & 0b01111100) >> 2) | ((encoded[3] & 0b00000111) << 5);
+    target[3] = ((encoded[3] & 0b01111000) >> 3) | ((encoded[4] & 0b00001111) << 4);
+
+    return target[0 .. 4];
+}
+
+unittest
+{
+    import std.random;
+    foreach(attempt; 0 .. 1024)
+    {
+        uint[1] u;
+        float[1] f;
+        u[0] = uniform(uint.min, uint.max);
+        f[0] = uniform(-100000.0f, 100000.0f) + uniform(-1.0f, 1.0f);
+
+        ubyte[5] encodeBuf;
+        ubyte[4] decodeBuf;
+        encode7Bit(cast(ubyte[4])u, encodeBuf[]);
+        decode7Bit(encodeBuf, decodeBuf[]);
+
+        assert(*(cast(uint*)decodeBuf.ptr) == u[0],
+                "encoded/decoded uint data does not match original");
+
+        encode7Bit(cast(ubyte[4])f, encodeBuf[]);
+        decode7Bit(encodeBuf, decodeBuf[]);
+
+        assert(*(cast(float*)decodeBuf.ptr) == f[0],
+                "encoded/decoded float data does not match original");
     }
 }
