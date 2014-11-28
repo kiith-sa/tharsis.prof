@@ -215,6 +215,20 @@ public:
         profiler_ = profiler;
     }
 
+    /** A shortcut to call variableEvent() of the zone's profiler, if any.
+     *
+     * If a null Profiler has been passed to the Zone's constructor, this call is ignored.
+     *
+     * See_Also: Profiler.variableEvent().
+     */
+    void variableEvent(string name, V)(const V value) @safe pure nothrow @nogc
+    {
+        if(profiler_ !is null)
+        {
+            profiler_.variableEvent!(name, V)(value);
+        }
+    }
+
     /** Destructor. Emits the zone end event with the Profiler.
      *
      * Can be called early (using destroy()) to end the zone before end of the scope.
@@ -317,6 +331,7 @@ final class Profiler
         size_t zoneEndCount;
         size_t infoCount;
         size_t frameCount;
+        size_t variableCount;
     }
 
     /// Maximum size of any single event in bytes. Used to quickly check if we're out of space.
@@ -407,6 +422,56 @@ public:
         auto time = lastTime_ - startTime_;
         // Add 8 time bytes (can represent 128 ** 8 hnsecs)
         foreach(b; 0 .. checkpointByteCount) { time = addTimeByte(time); }
+    }
+
+    /** Emit a variable event.
+     *
+     * Used to keep track of various variables that change over time, e.g. FPS, network
+     * traffic, entity count...; Despiker supports viewing the value of a variable once
+     * per frame.
+     *
+     * Params:
+     *
+     * name  = Variable name (specified at compile-time). The variable event itself does
+     *         not contain the name; the name is stored in an info event immediately
+     *         after the variable event.
+     * V     = Variable type. Only int, uint and float are supported at the moment.
+     * value = Value of the variable
+     *
+     * Example:
+     * --------------------
+     * // Profiler profiler
+     * profiler.variableEvent!"FPS"(4.5f);
+     * --------------------
+     */
+    void variableEvent(string name, V)(const V value) @trusted pure nothrow @nogc
+    {
+        static assert(name.length <= ubyte.max,
+                      "variableEvent name strings must be no longer than 255 bytes");
+        if(outOfSpace) { return; }
+        ++diagnostics_.variableCount;
+        eventWithTime(EventID.Variable, 0);
+        enum varType = variableType!V;
+        profileData_[profileDataUsed_++] = varType;
+
+
+        V[1] valueCopy;
+        valueCopy[0] = value;
+        import std.system;
+
+        import tinyendian;
+        // Variable bytes are always in big endian order.
+        if(std.system.endian != Endian.bigEndian)
+        {
+            swapByteOrder(valueCopy[]);
+        }
+
+        static assert(V.sizeof == 4,
+                      "variableEvent() does not support types with sizeof other than 4 yet");
+
+        const encoded = encode7Bit(cast(ubyte[4])valueCopy, profileData_[profileDataUsed_ .. $]);
+        profileDataUsed_ += encoded.length;
+        infoEvent(name);
     }
 
     /** Emit a zone start event, when code enters a zone.
