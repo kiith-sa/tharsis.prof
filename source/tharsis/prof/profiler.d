@@ -132,22 +132,9 @@ import std.exception;
 //       string. (Since we know it at compile-time, we can do any deduplication at
 //       compile-time or static ctor-time - and the restulting structure can be immutable
 //       - usable from multiple threads)
-// TODO: External viewer. Try to support real-time viewing (send data through socket). Also
-//       dumping/loading profiling data, probably with YAML, but core FrameProf shouldn't
-//       have a D:YAML dependency.
-//       Any analyzing code should be implemented as library functions in tharsis.prof core.
-//       For GUI dimgui if it's good enough, TkD otherwise.
-//       If real-time, the 'default' view mode should be to always see the time breakdown
-//       of the current frame, with an option to 'pause' and move forward/backward.
-//       We can do this by splitting EventStream by frame events.
-//       Note that by default, the real-time viewer would throw away received frames,
-//       but there'd be buttons to start/stop receiving. With a handy RAM usage meter.
-//       Also, it would keep data in 'raw profile data' form, read as EventRange/ZoneRange
-//       when needed. (of course, functionality based on accumulatedZoneRange, such as
-//       getting the max duration of all zones, or just merging matching zones in the
-//       current frame, would be there too)
-//
-//       2014-08-31
+//       To make this work with the profiling data stream, the first time a compile-time
+//       string is used in a zone, add an event describing that string. Following events
+//       will just contain an index.
 
 
 /** _Zone of profiled code.
