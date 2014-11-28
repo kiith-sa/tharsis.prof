@@ -8,13 +8,16 @@
 module tharsis.prof.csv;
 
 
-import tharsis.prof.ranges;
-
 import std.algorithm;
 import std.exception;
 import std.format;
 import std.range;
 import std.typetuple;
+
+import tharsis.prof.event;
+import tharsis.prof.profiler;
+import tharsis.prof.ranges;
+
 
 /** Write Events from a range to CSV.
  *

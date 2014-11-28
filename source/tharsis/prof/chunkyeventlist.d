@@ -14,6 +14,7 @@ import std.algorithm;
 import std.array;
 import std.stdio;
 
+import tharsis.prof.event;
 import tharsis.prof.profiler;
 import tharsis.prof.ranges;
 

@@ -92,6 +92,8 @@ import std.algorithm;
 import std.datetime;
 import std.exception;
 
+import tharsis.prof.event;
+
 // We're measuring in hectonanoseconds.
 //
 // Second is 10M hnsecs.
@@ -242,24 +244,6 @@ unittest
     }
 }
 
-/** Types of events recorded by Profiler.
- */
-enum EventID: ubyte
-{
-    // A 'checkpoint' event followed by an absolute time value (8 7-bit bytes).
-    Checkpoint = 0,
-    // Zone start.
-    ZoneStart  = 1,
-    // Zone end.
-    ZoneEnd    = 2,
-    // Info string. EventID/time bytes are followed by a string length byte and a string
-    // of up to 255 chars.
-    Info       = 3,
-}
-
-// A global array with all event IDs
-import std.traits;
-package immutable allEventIDs = [EnumMembers!EventID];
 static assert(!allEventIDs.canFind!(e => e > eventIDMask),
               "Too high EventID value; last 3 bits are reserved for byte count");
 
