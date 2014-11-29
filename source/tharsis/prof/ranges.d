@@ -443,7 +443,7 @@ unittest
  * foreach(zone; zones)
  * {
  *     import std.stdio;
- *     writeln(event);
+ *     writeln(zone);
  * }
  * --------------------
  */
