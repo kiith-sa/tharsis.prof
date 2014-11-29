@@ -43,6 +43,21 @@ import tharsis.prof.event;
 // Hour is 36G hnsecs.
 
 
+// TODO: Time slicing is unrealiable due to multiple events having the same time.
+//       ChunkyEventList has the SliceExtents as a hack to avoid this issue, but it's not
+//       a general solution. To get precise slices e.g. for Zones, we need to
+//       differentiate Events with the same time. On way to do this is to encode an extra
+//       number before each event: 0 by default (and ensure it takes 0 bytes in that
+//       case), 1 for second event with the same time, 2 for third, etc.
+//       We can use variable-length encoding just like when encoding time gaps.
+//       TODO IMPROVEMENT: We probably don't even need to store this number in profile
+//       data; just let EventRange generate it as a part of the event (eventIndex?)
+//       - This should work even with wrapped/filtered/slice EventRanges as there is
+//       always a full EventRange below (or for slices that aren't the full EventRange,
+//       when we add explicit slicing, keep the index of the first Event in the slice.).
+//       We can probably use this to replace SliceExtents (although ChunkyEventRange will
+//       need custom code to generate event IDs as it contatenates multiple EventRanges)
+//       2014-11-28
 // TODO: Use core.time.Duration once its API is @nogc and update the examples to use it.
 // TODO: Frame-based analysis. E.g. find the longest frame and create a range over its
 //       zones (really just a time slice of a ZoneRange). 2014-08-31
