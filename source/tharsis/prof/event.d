@@ -78,6 +78,22 @@ public:
         return type_;
     }
 
+    /// toString() with no allocations (except stack).
+    void toString(scope void delegate(const(char)[]) sink) const
+    {
+        char[128] buffer;
+        import core.stdc.stdio; // formattedWrite might be better, maybe rewrite
+        int length;
+        final switch(type_) with(VariableType)
+        {
+            case Int:   length = snprintf(buffer.ptr, buffer.length, "%d", varInt);   break;
+            case Uint:  length = snprintf(buffer.ptr, buffer.length, "%u", varUint);  break;
+            case Float: length = snprintf(buffer.ptr, buffer.length, "%f", varFloat); break;
+        }
+        assert(length > 0 && length < buffer.length, "Error formatting a value to string");
+        sink(buffer[0 .. length]);
+    }
+
     /** Get the integer value of the variable
      *
      * Can only be called if type is VariableType.Int.
