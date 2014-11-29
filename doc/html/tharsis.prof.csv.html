@@ -65,7 +65,63 @@
  generates Events.
 </p>
 <p>front() and popFront() may throw ConvException or CSVException.</p>
+<b>Examples:</b><div class="pbr"><pre class="d_code">
+<span class="d_keyword">import</span> tharsis.prof;
 
+<span class="d_keyword">auto</span> storage  = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[Profiler.maxEventBytes + 2048];
+<span class="d_keyword">auto</span> profiler = <span class="d_keyword">new</span> Profiler(storage);
+
+<span class="d_comment">// Simulate 2 'frames'
+</span><span class="d_keyword">foreach</span>(frame; 0 .. 2)
+{
+    Zone topLevel = Zone(profiler, <span class="d_string">"frame"</span>);
+
+    <span class="d_comment">// Simulate frame overhead. Replace this with your frame code.
+</span>    {
+        Zone nested1 = Zone(profiler, <span class="d_string">"with,comma"</span>);
+        <span class="d_keyword">foreach</span>(i; 0 .. 1000) { <span class="d_keyword">continue</span>; }
+    }
+    {
+        Zone nested2 = Zone(profiler, <span class="d_string">"with\"quotes\" and\nnewline"</span>);
+        nested2.variableEvent!<span class="d_string">"float 3.14"</span>(3.14f);
+        nested2.variableEvent!<span class="d_string">"float 10.1"</span>(10.1f);
+        nested2.variableEvent!<span class="d_string">"int without comma"</span>(314);
+        <span class="d_keyword">foreach</span>(i; 0 .. 10000) { <span class="d_keyword">continue</span>; }
+    }
+}
+
+<span class="d_keyword">import</span> std.stdio;
+writeln(<span class="d_string">"Tharsis.prof CSV writing example"</span>);
+<span class="d_comment">// Create an EventRange from profile data with UFCS syntax.
+</span><span class="d_keyword">auto</span> events = profiler.profileData.eventRange;
+
+<span class="d_keyword">import</span> std.array;
+<span class="d_keyword">auto</span> appender = appender!string();
+
+events.writeCSVTo(appender);
+
+writeln(appender.data);
+
+writeln(<span class="d_string">"Tharsis.prof CSV parsing example"</span>);
+<span class="d_keyword">import</span> std.csv;
+<span class="d_keyword">import</span> std.range;
+
+<span class="d_comment">// Parse the CSV back into events.
+</span><span class="d_comment">//
+</span><span class="d_comment">// Direct file input could work like this (it might be faster to load the entire file
+</span><span class="d_comment">// to a buffer, though):
+</span><span class="d_comment">//
+</span><span class="d_comment">// import std.algorithm
+</span><span class="d_comment">// foreach(event; csvEventRange(File("values.csv").byLine.joiner))
+</span><span class="d_keyword">foreach</span>(original, parsed; lockstep(events, csvEventRange(appender.data)))
+{
+    <span class="d_keyword">import</span> std.conv: to;
+    <span class="d_keyword">assert</span>(original == parsed,
+           original.to!string ~ <span class="d_string">"\n does not match\n"</span> ~ parsed.to!string);
+    writeln(parsed);
+}
+</pre>
+</div>
 <dl><dt class="d_decl"><a name="CSVEventRange.front"></a>pure @trusted Event <a name="front"></a><span class="ddoc_psymbol">front</span>();
 </dt>
 <dd><p>Get the current event.
