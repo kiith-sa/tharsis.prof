@@ -405,9 +405,15 @@ public:
     {
         static assert(name.length <= ubyte.max,
                       "variableEvent name strings must be no longer than 255 bytes");
+
         if(outOfSpace) { return; }
         ++diagnostics_.variableCount;
-        eventWithTime(EventID.Variable, 0);
+
+        const time = Clock.currStdTime.assumeWontThrow;
+        const timeGap = time - lastTime_;
+        lastTime_ = time;
+
+        eventWithTime(EventID.Variable, timeGap);
         enum varType = variableType!V;
         profileData_[profileDataUsed_++] = varType;
 
