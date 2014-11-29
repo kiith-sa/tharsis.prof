@@ -712,7 +712,8 @@ unittest
             {
                 auto zone12 = Zone(profiler, "zone12");
             }
-            profiler.variableEvent!"var_i" = cast(float)i;
+            profiler.variableEvent!"var_i"  = cast(float)i;
+            profiler.variableEvent!"var_pi" = 3.14f;
             profiler.checkpointEvent();
         }
     }
@@ -737,11 +738,15 @@ unittest
             assert(evts.front.id == Info && evts.front.info == "zone12"); evts.popFront();
             assert(evts.front.id == ZoneEnd);                             evts.popFront();
 
-            const time = evts.front.time;
             assert(evts.front.id == Variable &&
                    evts.front.var.type == VariableType.Float &&
                    evts.front.var.varFloat == cast(float)i);              evts.popFront();
             assert(evts.front.id == Info && evts.front.info == "var_i");  evts.popFront();
+            assert(evts.front.id == Variable &&
+                   evts.front.var.type == VariableType.Float &&
+                   evts.front.var.varFloat == 3.14f);                     evts.popFront();
+            assert(evts.front.id == Info && evts.front.info == "var_pi"); evts.popFront();
+            const time = evts.front.time;
 
             // Checkpoint start time must match the previous event.
             assert(evts.front.time == time);
