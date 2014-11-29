@@ -651,6 +651,60 @@ private:
         }
     }
 }
+///
+unittest
+{
+    // Print names and values of all recorded variables (once for each time they were
+    // recorded).
+
+    import tharsis.prof;
+
+    auto storage  = new ubyte[Profiler.maxEventBytes + 2048];
+    auto profiler = new Profiler(storage);
+
+    // Simulate 16 'frames'
+    foreach(frame; 0 .. 16)
+    {
+        Zone topLevel = Zone(profiler, "frame");
+
+        topLevel.variableEvent!"frame"(cast(uint)frame);
+        topLevel.variableEvent!"frame2"(cast(uint)frame);
+        // Simulate frame overhead. Replace this with your frame code.
+        {
+            import std.random;
+            const random = uniform(1.0f, 5.0f);
+            import std.stdio;
+            writeln(random);
+            topLevel.variableEvent!"somethingRandom"(random);
+            Zone nested1 = Zone(profiler, "frameStart");
+            foreach(i; 0 .. 1000) { continue; }
+        }
+        {
+            Zone nested2 = Zone(profiler, "frameCore");
+            foreach(i; 0 .. 10000) { continue; }
+        }
+    }
+
+    import std.algorithm;
+
+    size_t i = 0;
+    ulong lastTime = 0;
+    // Write duration of each instance of the "frameCore" zone.
+    foreach(var; profiler.profileData.variableRange)
+    {
+        assert(var.time >= lastTime);
+        lastTime = var.time;
+
+        if(i % 3 == 0)      { assert(var.name == "frame"); }
+        else if(i % 3 == 1) { assert(var.name == "frame2"); }
+        else if(i % 3 == 2) { assert(var.name == "somethingRandom"); }
+
+        import std.stdio;
+        writefln("%s: %s == %s", var.time, var.name, var.variable);
+        ++i;
+    }
+}
+
 /** Light-weight range that iterates over zones in profile data.
  *
  * Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm wrapper
