@@ -486,6 +486,171 @@ package ZoneData buildZoneData(ZInfo)(const(ZInfo)[] stack, ulong endTime)
 }
 
 
+/** Variable together with its name and time of the variable event.
+ *
+ * Variable Event itself only stores variable type/value. It is followed by an info event
+ * specifying variable name. VariableRange can be used to get NamedVariables from
+ * profiling data.
+ */
+struct NamedVariable
+{
+    /// Variable name.
+    const(char)[] name;
+    /// Time when the variable event has occured.
+    ulong time;
+
+    /// Variable type and value (members directly accessible with alias this).
+    Variable variable;
+    alias variable this;
+}
+
+/** Construct a VariableRange directly from profile data.
+ *
+ * Params:
+ *
+ * profileData = Profile data recorded by a Profiler. Note that modifying or concatenating
+ *               raw profile data is unsafe unless you know what you're doing.
+ *
+ * Example:
+ * --------------------
+ * // Profiler profiler;
+ *
+ * // Create a VariableRange from profile data with UFCS syntax.
+ * auto variables = profiler.profileData.variableRange;
+ * foreach(variable; variables)
+ * {
+ *     import std.stdio;
+ *     writeln(variable);
+ * }
+ * --------------------
+ */
+VariableRange!EventRange variableRange(const(ubyte)[] profileData) @safe pure nothrow @nogc 
+{
+    return VariableRange!EventRange(profileData.eventRange);
+}
+
+/** Light-weight range that iterates over variables in profile data.
+ *
+ * Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm wrapper
+ * around an EventRange). Can also be constructed from raw profile data using
+ * variableRange().
+ *
+ *
+ * ForwardRange of NamedVariable ordered by $(I time). Doesn't allocate any heap memory.
+ *
+ * If profile data is incomplete (e.g. because the Profiler ran out of assigned memory in
+ * the middle of profiling), the last recorded variable may be ignored.
+ *
+ * Ignores any variable events not followed by an info event (this may happen e.g. if a
+ * Profiler runs out of memory when recording a variable event).
+ */
+struct VariableRange(ERange)
+{
+    static assert(isForwardRange!ERange && is(Unqual!(ElementType!ERange) == Event),
+                  "ERange parameter of VariableRange must be a forward range of Event, "
+                  " e.g. EventRange");
+private:
+    // Range to read profiling events from.
+    ERange events_;
+
+    // Time of the last encountered variable event. ulong.max means "uninitialized value".
+    ulong variableTime_ = ulong.max;
+    // Info (name) of the last encontered variable.
+    const(char)[] variableInfo_;
+    // Value of the last encountered variable.
+    Variable variable_;
+
+    static assert(isForwardRange!VariableRange, "VariableRange must be a forward range");
+    static assert(is(Unqual!(ElementType!VariableRange) == NamedVariable),
+                  "VariableRange must be a range of NamedVariable");
+
+public:
+    /** Construct a VariableRange processing events from a range of Events.
+     *
+     * Params:
+     *
+     * events = The event range to read from. VariableRange will create a (shallow) copy,
+     *          and will not consume this range.
+     */
+    this(ERange events) @safe pure nothrow @nogc 
+    {
+        events_ = events.save;
+        getToNextVariableEnd();
+    }
+
+    /// Get the current variable.
+    NamedVariable front() @safe pure nothrow @nogc
+    {
+        assert(!empty, "Can't get front of an empty range");
+
+        // Handling the case where we've run out of events_, but haven't popped the last
+        // variable off the front yet.
+        if(events_.empty)
+        {
+            assert(variableTime_ != ulong.max, "Non-empty VariableRange with empty "
+                   "events_ must have non-default variableTime_");
+            return NamedVariable(variableInfo_, variableTime_, variable_);
+        }
+
+        return NamedVariable(variableInfo_, variableTime_, variable_);
+    }
+
+    /// Go to the next variable.
+    void popFront() @safe pure nothrow @nogc
+    {
+        assert(!empty, "Can't pop front of an empty range");
+        // Pop the Info event reached by the last getToNextVariableEnd() call.
+        assert(events_.front.id == EventID.Info, "Current event is not expected Info");
+        events_.popFront();
+        getToNextVariableEnd();
+    }
+
+    /// Are there no more variables?
+    bool empty() @safe pure nothrow @nogc { return events_.empty; }
+
+    // Must be a property, isForwardRange won't work otherwise.
+    /// Get a copy of the range in its current state.
+    @property VariableRange save() @safe pure nothrow const @nogc { return this; }
+
+private:
+    /* Processes events_ until an Info event after a VariableEvent, or the end of events_,
+     * is reached.
+     *
+     * If we already are at such an Info event, stays there.
+     *
+     * Initializes variable_ with any read variable event, but only exits after reaching
+     * an info event; any variable event not followed by an info event will be ignored.
+     */
+    void getToNextVariableEnd() @safe pure nothrow @nogc
+    {
+        for(; !events_.empty; events_.popFront())
+        {
+            const event = events_.front;
+
+            with(EventID) final switch(event.id)
+            {
+                case Checkpoint, ZoneStart, ZoneEnd: break;
+                case Variable:
+                    variable_     = event.var;
+                    variableTime_ = event.time;
+                    variableInfo_ = null;
+                    break;
+                // If an info event has the same start time as the last variable, it's
+                // info about that variable.
+                case Info:
+                    // The variableInfo_ == null check is necessary because we want
+                    // the *first* info event that follows a variable event (there may be
+                    // more info events with the same startTime).
+                    if(variableInfo_ == null && event.time == variableTime_)
+                    {
+                        variableInfo_ = event.info;
+                        return;
+                    }
+                    break;
+            }
+        }
+    }
+}
 /** Light-weight range that iterates over zones in profile data.
  *
  * Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm wrapper
