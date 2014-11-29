@@ -508,8 +508,8 @@ package ZoneData buildZoneData(ZInfo)(const(ZInfo)[] stack, ulong endTime)
 struct ZoneRange(ERange)
 {
     static assert(isForwardRange!ERange && is(Unqual!(ElementType!ERange) == Event),
-                  "ERange parameter of ZoneRange must be a forward range of Event, "
-                  "e.g. EventRange");
+                  "ERange parameter of ZoneRange must be a forward range of Event, e.g. "
+                  "EventRange");
 
 private:
     // Range to read profiling events from.
@@ -558,8 +558,13 @@ public:
         }
 
         getToNextZoneEnd();
-        // If getToNextZoneEnd consumed all events, we're empty (since no more ZoneEnd).
-        assert(!events_.empty, "ZoneRange empty despite assertion at the top of function");
+        // getToNextZoneEnd can only consume all events if we're empty (no more ZoneEnd
+        // - if there was a ZoneEnd, getToNextZoneEnd() would stop at the ZoneEnd without
+        // making events_ empty.
+        // However, the above assert checks that we're not empty, and the above if()
+        // handles the case where events_ is empty before getToNextZoneEnd().
+        // So, events_ must not be empty here.
+        assert(!events_.empty, "ZoneRange empty despite assert at the top of function");
         assert(events_.front.id == EventID.ZoneEnd, "getToNextZoneEnd got to a non-end event");
         return buildZoneData(zoneStack_[0 .. zoneStackDepth_], lastEventTime_);
     }
@@ -570,7 +575,7 @@ public:
         assert(!empty, "Can't pop front of an empty range");
 
         // Since profiling can stop at any moment due to running out of assigned memory,
-        // we need to handle the space where we don't have zone end events for all zones.
+        // we need to handle the case where we don't have zone end events for all zones.
         if(events_.empty)
         {
             assert(zoneStackDepth_ > 0,
@@ -599,6 +604,8 @@ public:
 
 private:
     /* Processes events_ until a ZoneEnd event or the end of events_ is reached.
+     *
+     * If we already are at such an ZoneEnd event, stays there.
      *
      * Adds any ZoneStart events to the stack.
      */
