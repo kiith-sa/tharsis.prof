@@ -176,6 +176,7 @@ public:
     /// Is the range empty (no more events)?
     bool empty() @safe pure nothrow @nogc { return csv_.empty; }
 }
+///
 unittest
 {
     import tharsis.prof;
