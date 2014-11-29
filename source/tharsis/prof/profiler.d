@@ -178,7 +178,7 @@ public:
      *
      * See_Also: Profiler.variableEvent().
      */
-    void variableEvent(string name, V)(const V value) @safe pure nothrow @nogc
+    void variableEvent(string name, V)(const V value) @safe nothrow
     {
         if(profiler_ !is null)
         {
@@ -401,7 +401,7 @@ public:
      * profiler.variableEvent!"FPS"(4.5f);
      * --------------------
      */
-    void variableEvent(string name, V)(const V value) @trusted pure nothrow @nogc
+    void variableEvent(string name, V)(const V value) @trusted nothrow
     {
         static assert(name.length <= ubyte.max,
                       "variableEvent name strings must be no longer than 255 bytes");
