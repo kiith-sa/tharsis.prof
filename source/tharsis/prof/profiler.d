@@ -454,13 +454,13 @@ public:
 
         const time = Clock.currStdTime.assumeWontThrow;
 
-        auto timeLeft = time - lastTime_;
+        const timeGap = time - lastTime_;
         lastTime_ = time;
 
         if(outOfSpace) { return ++zoneNestLevel_; }
         ++diagnostics_.zoneStartCount;
 
-        eventWithTime(EventID.ZoneStart, timeLeft);
+        eventWithTime(EventID.ZoneStart, timeGap);
         if(outOfSpace) { return ++zoneNestLevel_; }
         infoEvent(info);
 
@@ -485,12 +485,12 @@ public:
         --zoneNestLevel_;
         const time = Clock.currStdTime.assumeWontThrow;
 
-        const timeLeft = time - lastTime_;
+        const timeGap = time - lastTime_;
         lastTime_ = time;
         if(outOfSpace) { return; }
         ++diagnostics_.zoneEndCount;
 
-        eventWithTime(EventID.ZoneEnd, timeLeft);
+        eventWithTime(EventID.ZoneEnd, timeGap);
     }
 
 
