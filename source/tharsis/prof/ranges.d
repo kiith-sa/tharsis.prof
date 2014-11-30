@@ -662,7 +662,8 @@ public:
     void popFront()
     {
         assert(!empty, "Can't pop front of an empty range");
-        empty_ = profileData_.empty;
+        // unoptimized // empty_ = profileData_.empty;
+        empty_ = profileData_.length == 0;
         if(!empty_) { readEvent(); }
     }
 
@@ -691,9 +692,12 @@ private:
      */
     void readEvent()
     {
-        assert(!profileData_.empty, "Trying to read an event from empty profile data");
+        // Store on the stack for fast access.
+        const(ubyte)[] profileData = profileData_;
+        scope(exit) { profileData_ = profileData; }
+        assert(!profileData.empty, "Trying to read an event from empty profile data");
 
-        front_.id = cast(EventID)(profileData_.front & eventIDMask);
+        front_.id = cast(EventID)(profileData[0] & eventIDMask);
         // Assert validity of the profile data.
         debug
         {
@@ -701,22 +705,39 @@ private:
             assert(found, "Invalid profiling data; expected event ID but got something else");
         }
 
-        const timeBytes = profileData_.front >> eventIDBits;
-        profileData_.popFront();
+        const timeBytes = profileData[0] >> eventIDBits;
+        profileData = profileData[1 .. $];
 
-        assert(profileData_.length >= timeBytes,
+        assert(profileData.length >= timeBytes,
                "Invalid profiling data; not long enough to store expected time gap bytes");
 
         // Parses 'time bytes' each encoding 7 bits of a time span value
         void parseTimeBytes(uint count) nothrow @nogc
         {
             assert(count <= 8, "Time byte count can't be more than 8 bytes");
-            foreach(b; 0 .. count)
+
+            // This unrolls the loop at compile-time (for performance).
+            foreach(b; TypeTuple!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
             {
-                assert(profileData_.front != 0, "Time bytes must not be 0");
-                front_.time += cast(ulong)(profileData_.front() & timeByteMask)
-                               << (b * timeByteBits);
-                profileData_.popFront();
+                // 7 is the maximum for time gap, but 8 is used for checkpoints
+                static if(b == 9)
+                {
+                    assert(false, "Time durations over 128 * 228 years not supported");
+                }
+                else
+                {
+                    if(count--)
+                    {
+                        enum bitOffset = b * timeByteBits;
+                        assert(profileData[0] != 0, "Time bytes must not be 0");
+                        front_.time += cast(ulong)(profileData[0] & timeByteMask) << bitOffset;
+                        profileData = profileData[1 .. $];
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
             }
         }
 
@@ -736,33 +757,33 @@ private:
                 break;
             // Info is followed by an info string.
             case Info:
-                assert(!profileData_.empty,
+                assert(profileData.length != 0,
                        "Invalid profiling data: info event not followed by string length");
-                const infoBytes = profileData_.front;
-                profileData_.popFront;
-                front_.info_ = cast(const(char)[])profileData_[0 .. infoBytes];
+                const infoBytes = profileData[0];
+                profileData = profileData[1 .. $];
+                front_.info_ = cast(const(char)[])profileData[0 .. infoBytes];
 
-                assert(profileData_.length >= infoBytes,
+                assert(profileData.length >= infoBytes,
                        "Invalid profiling data: info event not followed by info string");
-                profileData_ = profileData_[infoBytes .. $];
+                profileData = profileData[infoBytes .. $];
                 return;
             // Variable is followed by variable type and 7-bit encoded value.
             case Variable:
-                const ubyte type = profileData_.front;
-                profileData_.popFront();
+                const ubyte type = profileData[0];
+                profileData = profileData[1 .. $];
                 bool knownType = allVariableTypes.canFind(type);
                 assert(knownType, "Variable event has unknown type");
                 front_.var_.type_ = cast(VariableType)type;
 
-                // Decode a 7-bit variable value at the front of profileData_.
-                V decode(V)() @trusted pure nothrow @nogc
+                // Decode a 7-bit variable value at the front of profileData.
+                V decode(V)() @trusted nothrow @nogc
                 {
                     enum VType = variableType!V;
                     enum encBytes = variable7BitLengths[VType];
-                    ubyte[encBytes] encoded = profileData_[0 .. encBytes];
+                    ubyte[encBytes] encoded = profileData[0 .. encBytes];
                     V[1] decoded;
                     decode7Bit(encoded, cast(ubyte[])(decoded[]));
-                    profileData_ = profileData_[encBytes .. $];
+                    profileData = profileData[encBytes .. $];
 
                     import std.system;
                     if(std.system.endian != Endian.bigEndian)
@@ -782,6 +803,104 @@ private:
                 return;
             default: assert(false, "Unknown event ID");
         }
+
+
+        // // Unoptimized version:
+        //
+        // assert(!profileData_.empty, "Trying to read an event from empty profile data");
+        //
+        // // un-optimized // front_.id = cast(EventID)(profileData_.front & eventIDMask);
+        // front_.id = cast(EventID)(profileData_[0] & eventIDMask);
+        // // Assert validity of the profile data.
+        // debug
+        // {
+        //     bool found = allEventIDs.canFind(front_.id);
+        //     assert(found, "Invalid profiling data; expected event ID but got something else");
+        // }
+        //
+        // // un-optimized // const timeBytes = profileData_.front >> eventIDBits;
+        // const timeBytes = profileData_.front >> eventIDBits;
+        // // un-optimized // profileData_.popFront();
+        // profileData_ = profileData[1 .. $];
+        //
+        // assert(profileData_.length >= timeBytes,
+        //        "Invalid profiling data; not long enough to store expected time gap bytes");
+        //
+        // // Parses 'time bytes' each encoding 7 bits of a time span value
+        // void parseTimeBytes(uint count) nothrow @nogc
+        // {
+        //     assert(count <= 8, "Time byte count can't be more than 8 bytes");
+        //     foreach(b; 0 .. count)
+        //     {
+        //         assert(profileData_.front != 0, "Time bytes must not be 0");
+        //         front_.time += cast(ulong)(profileData_.front() & timeByteMask)
+        //                        << (b * timeByteBits);
+        //         profileData_.popFront();
+        //     }
+        // }
+        //
+        // parseTimeBytes(timeBytes);
+        // front_.info_ = null;
+        //
+        // with(EventID) switch(front_.id)
+        // {
+        //     case ZoneStart, ZoneEnd: return;
+        //     case Checkpoint:
+        //         // A checkpoint contains absolute start time.
+        //         // This is not really necessary ATM, (relative time would get us the same
+        //         // result as this code), but allow 'disjoint' checkpoints that change the
+        //         // 'current time' in future.
+        //         front_.time = 0;
+        //         parseTimeBytes(checkpointByteCount);
+        //         break;
+        //     // Info is followed by an info string.
+        //     case Info:
+        //         assert(!profileData_.empty,
+        //                "Invalid profiling data: info event not followed by string length");
+        //         const infoBytes = profileData_.front;
+        //         profileData_.popFront;
+        //         front_.info_ = cast(const(char)[])profileData_[0 .. infoBytes];
+        //
+        //         assert(profileData_.length >= infoBytes,
+        //                "Invalid profiling data: info event not followed by info string");
+        //         profileData_ = profileData_[infoBytes .. $];
+        //         return;
+        //     // Variable is followed by variable type and 7-bit encoded value.
+        //     case Variable:
+        //         const ubyte type = profileData_.front;
+        //         profileData_.popFront();
+        //         bool knownType = allVariableTypes.canFind(type);
+        //         assert(knownType, "Variable event has unknown type");
+        //         front_.var_.type_ = cast(VariableType)type;
+        //
+        //         // Decode a 7-bit variable value at the front of profileData_.
+        //         V decode(V)() @trusted pure nothrow @nogc
+        //         {
+        //             enum VType = variableType!V;
+        //             enum encBytes = variable7BitLengths[VType];
+        //             ubyte[encBytes] encoded = profileData_[0 .. encBytes];
+        //             V[1] decoded;
+        //             decode7Bit(encoded, cast(ubyte[])(decoded[]));
+        //             profileData_ = profileData_[encBytes .. $];
+        //
+        //             import std.system;
+        //             if(std.system.endian != Endian.bigEndian)
+        //             {
+        //                 import tinyendian;
+        //                 swapByteOrder(decoded[]);
+        //             }
+        //             return decoded[0];
+        //         }
+        //
+        //         final switch(front_.var_.type_)
+        //         {
+        //             case VariableType.Int:   front_.var_.int_   = decode!int;   break;
+        //             case VariableType.Uint:  front_.var_.uint_  = decode!uint;  break;
+        //             case VariableType.Float: front_.var_.float_ = decode!float; break;
+        //         }
+        //         return;
+        //     default: assert(false, "Unknown event ID");
+        // }
     }
 }
 ///
