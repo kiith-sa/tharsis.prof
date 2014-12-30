@@ -2,7 +2,7 @@
 Tharsis.prof
 ============
 
-.. image:: https://raw.githubusercontent.com/kiith-sa/tharsis-prof/master/code.dlang.org-shield.png
+.. image:: https://raw.githubusercontent.com/kiith-sa/tharsis.prof/master/code.dlang.org-shield.png
    :target: http://code.dlang.org
 
 
