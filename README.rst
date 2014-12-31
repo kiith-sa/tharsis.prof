@@ -2,6 +2,7 @@
 Tharsis.prof
 ============
 
+.. image:: https://travis-ci.org/kiith-sa/tharsis.prof.svg?branch=master
 .. image:: https://raw.githubusercontent.com/kiith-sa/tharsis.prof/master/code.dlang.org-shield.png
    :target: http://code.dlang.org
 
