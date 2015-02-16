@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>DespikerFrameFilter</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/despikersender.html>despikersender</a>.</small><span class="highlight">DespikerFrameFilter</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/despikersender.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/despikersender.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct DespikerFrameFilter
+</code></pre>
+<div class="section "><p>Used to tell Despiker which zones are 'frames'.
+</p>
+
+
+</div>
+<div class="section"><p>Despiker displays one frame at a time, and it lines up frames from multiple profilers
+ enable profiling multiple threads. Properties of this struct determine which zones will
+ be considered frames by Despiker.
+</p>
+<p> By default, it is enough to use a zone with info string set to "frame" (and to ensure
+ no other zone uses the same info string).
+</p>
+
+
+</div>
+</div><a class="anchor" id="info"></a><div class="symbol"><div class="description"><pre><code>public string info
+</code></pre>
+<div class="section "><p>Info string of a zone must be equal to this for that zone to be considered a frame.
+</p>
+
+
+</div>
+<div class="section"><p>If null, zone info does not determine which zones are frames. Must not be set to
+ string value "NULL".
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="nestLevel"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">ushort</a> nestLevel
+</code></pre>
+<div class="section "><p>Nest level of a zone must be equal to this for that zone to be considered a frame.
+</p>
+
+
+</div>
+<div class="section"><p>If 0, zone nest level does not determine which zones are frames.
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Variables</h2><table><tr><td><a href="tharsis/prof/despikersender/DespikerFrameFilter.html#info">info</a></td><td><pre><code>string
+</code></pre>
+</td><td><p>Info string of a zone must be equal to this for that zone to be considered a frame.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/despikersender/DespikerFrameFilter.html#nestLevel">nestLevel</a></td><td><pre><code><a href="http://dlang.org/type.html#basic-data-types">ushort</a>
+</code></pre>
+</td><td><p>Nest level of a zone must be equal to this for that zone to be considered a frame.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

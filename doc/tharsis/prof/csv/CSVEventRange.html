@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>CSVEventRange</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/csv.html>csv</a>.</small><span class="highlight">CSVEventRange</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/csv.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/csv.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct CSVEventRange(Range)
+</code></pre>
+<div class="section "><p>A range that parses CSV data from a character range (string, file, etc.) and lazily
+generates Events.
+</p>
+
+
+</div>
+<div class="section"><p>front() and popFront() may throw ConvException or CSVException.
+</p>
+
+
+</div>
+<div class="section "><h2>Example</h2>
+<pre><code>import <a href="tharsis/prof.html">tharsis.prof</a>;
+
+auto storage  = new ubyte[<a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">Profiler.maxEventBytes</a> + 2048];
+auto profiler = new <a href="tharsis/prof/profiler/Profiler.html">Profiler</a>(storage);
+
+// Simulate 2 'frames'
+foreach(frame; 0 .. 2)
+{
+    <a href="tharsis/prof/profiler/Zone.html">Zone</a> topLevel = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+
+    // Simulate frame overhead. Replace this with your frame code.
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "with,comma");
+        foreach(i; 0 .. 1000) { continue; }
+    }
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "with\"quotes\" and\nnewline");
+        nested2.variableEvent!"float 3.14"(3.14f);
+        nested2.variableEvent!"float 10.1"(10.1f);
+        nested2.variableEvent!"int without comma"(314);
+        foreach(i; 0 .. 10000) { continue; }
+    }
+}
+
+import std.stdio;
+writeln("Tharsis.prof CSV writing example");
+// Create an <a href="tharsis/prof/ranges/EventRange.html">EventRange</a> from profile data with UFCS syntax.
+auto events = profiler.profileData.<a href="tharsis/prof/ranges.html#eventRange">eventRange</a>;
+
+import std.array;
+auto appender = appender!string();
+
+events.<a href="tharsis/prof/csv.html#writeCSVTo">writeCSVTo</a>(appender);
+
+writeln(appender.data);
+
+writeln("Tharsis.prof CSV parsing example");
+import std.csv;
+import std.range;
+
+// Parse the CSV back into events.
+//
+// Direct file input could work like this (it might be faster to load the entire file
+// to a buffer, though):
+//
+// import std.algorithm
+// foreach(event; <a href="tharsis/prof/csv.html#csvEventRange">csvEventRange</a>(File("values.csv").byLine.joiner))
+foreach(original, parsed; lockstep(events, <a href="tharsis/prof/csv.html#csvEventRange">csvEventRange</a>(appender.data)))
+{
+    import std.conv: to;
+    assert(original == parsed,
+           original.to!string ~ "\n does not match\n" ~ parsed.to!string);
+    writeln(parsed);
+}
+
+</code></pre>
+
+</div>
+</div><a class="anchor" id="front"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/event/Event.html">Event</a> <a href="tharsis/prof/csv/CSVEventRange.html#front">front</a>() @trusted pure
+</code></pre>
+<div class="section "><p>Get the current event.
+</p>
+
+
+</div>
+<div class="section"><h2>Throws</h2>
+<p> ConvException on a failure to parse a value stored in the CSV.
+ CSVException on a CSV format error.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="popFront"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/csv/CSVEventRange.html#popFront">popFront</a>() @trusted
+</code></pre>
+<div class="section "><p>Move to the next event in the range.
+</p>
+
+
+</div>
+<div class="section"><h2>Throws</h2>
+<p> CSVException on a CSV format error.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="empty"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/csv/CSVEventRange.html#empty">empty</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Is the range empty (no more events)?
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Functions</h2><table><tr><td><a href="tharsis/prof/csv/CSVEventRange.html#front">front</a><span class="extrainfo"><span class="method-attribs"><span class="attr-trusted">@trusted</span>, <span class="attr-pure">pure</span></span></span></td><td></td><td><p>Get the current event.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/csv/CSVEventRange.html#popFront">popFront</a><span class="extrainfo"><span class="method-attribs"><span class="attr-trusted">@trusted</span></span></span></td><td></td><td><p>Move to the next event in the range.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/csv/CSVEventRange.html#empty">empty</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Is the range empty (no more events)?
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

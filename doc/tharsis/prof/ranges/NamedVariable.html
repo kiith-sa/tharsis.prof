@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>NamedVariable</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/ranges.html>ranges</a>.</small><span class="highlight">NamedVariable</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/ranges.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/ranges.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct NamedVariable
+</code></pre>
+<div class="section "><p>Variable together with its name and time of the variable event.
+</p>
+
+
+</div>
+<div class="section"><p>Variable Event itself only stores variable type/value. It is followed by an info event
+ specifying variable name. VariableRange can be used to get NamedVariables from
+ profiling data.
+</p>
+
+
+</div>
+</div><a class="anchor" id="name"></a><div class="symbol"><div class="description"><pre><code>public const(<a href="http://dlang.org/type.html#basic-data-types">char</a>)[] name
+</code></pre>
+<div class="section "><p>Variable name.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="time"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">ulong</a> time
+</code></pre>
+<div class="section "><p>Time when the variable event has occured.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="variable"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/event/Variable.html">Variable</a> variable
+</code></pre>
+<div class="section "><p>Variable type and value (members directly accessible with alias this).
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Variables</h2><table><tr><td><a href="tharsis/prof/ranges/NamedVariable.html#name">name</a></td><td><pre><code>const(<a href="http://dlang.org/type.html#basic-data-types">char</a>)[]
+</code></pre>
+</td><td><p>Variable name.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/NamedVariable.html#time">time</a></td><td><pre><code><a href="http://dlang.org/type.html#basic-data-types">ulong</a>
+</code></pre>
+</td><td><p>Time when the variable event has occured.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/NamedVariable.html#variable">variable</a></td><td><pre><code><a href="tharsis/prof/event/Variable.html">Variable</a>
+</code></pre>
+</td><td><p>Variable type and value (members directly accessible with alias this).
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

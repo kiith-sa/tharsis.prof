@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>VariableRange</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/ranges.html>ranges</a>.</small><span class="highlight">VariableRange</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/ranges.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/ranges.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct VariableRange(ERange)
+</code></pre>
+<div class="section "><p>Light-weight range that iterates over variables in profile data.
+</p>
+
+
+</div>
+<div class="section"><p>Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm wrapper
+ around an EventRange). Can also be constructed from raw profile data using
+ variableRange().
+</p>
+<p> ForwardRange of NamedVariable ordered by <i>time</i>. Doesn't allocate any heap memory.
+</p>
+<p> If profile data is incomplete (e.g. because the Profiler ran out of assigned memory in
+ the middle of profiling), the last recorded variable may be ignored.
+</p>
+<p> Ignores any variable events not followed by an info event (this may happen e.g. if a
+ Profiler runs out of memory when recording a variable event).
+</p>
+
+
+</div>
+<div class="section "><h2>Example</h2>
+<pre><code>// Print names and values of all recorded variables (once for each time they were
+// recorded).
+
+import <a href="tharsis/prof.html">tharsis.prof</a>;
+
+auto storage  = new ubyte[<a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">Profiler.maxEventBytes</a> + 2048];
+auto profiler = new <a href="tharsis/prof/profiler/Profiler.html">Profiler</a>(storage);
+
+// Simulate 16 'frames'
+foreach(frame; 0 .. 16)
+{
+    <a href="tharsis/prof/profiler/Zone.html">Zone</a> topLevel = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+
+    topLevel.variableEvent!"frame"(cast(uint)frame);
+    topLevel.variableEvent!"frame2"(cast(uint)frame);
+    // Simulate frame overhead. Replace <a href="tharsis/prof/ranges/VariableRange.html#this">this</a> with your frame code.
+    {
+        import std.random;
+        const random = uniform(1.0f, 5.0f);
+        import std.stdio;
+        writeln(random);
+        topLevel.variableEvent!"somethingRandom"(random);
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameStart");
+        foreach(i; 0 .. 1000) { continue; }
+    }
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameCore");
+        foreach(i; 0 .. 10000) { continue; }
+    }
+}
+
+import std.algorithm;
+
+size_t i = 0;
+ulong lastTime = 0;
+// Write duration of each instance of the "frameCore" zone.
+foreach(var; profiler.profileData.<a href="tharsis/prof/ranges.html#variableRange">variableRange</a>)
+{
+    assert(var.time >= lastTime);
+    lastTime = var.time;
+
+    if(i % 3 == 0)      { assert(var.name == "frame"); }
+    else if(i % 3 == 1) { assert(var.name == "frame2"); }
+    else if(i % 3 == 2) { assert(var.name == "somethingRandom"); }
+
+    import std.stdio;
+    writefln("%s: %s == %s", var.time, var.name, var.variable);
+    ++i;
+}
+
+</code></pre>
+
+</div>
+</div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public this(ERange events) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct a VariableRange processing events from a range of Events.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">events</td><td class="paramDoc"><p>The event range to read from. VariableRange will create a (shallow) copy, and will not consume this range.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><a class="anchor" id="front"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/ranges/NamedVariable.html">NamedVariable</a> <a href="tharsis/prof/ranges/VariableRange.html#front">front</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Get the current variable.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="popFront"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/ranges/VariableRange.html#popFront">popFront</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Go to the next variable.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="empty"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/ranges/VariableRange.html#empty">empty</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Are there no more variables?
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="save"></a><div class="symbol"><div class="description"><pre><code>public @property <a href="tharsis/prof/ranges/VariableRange.html">VariableRange</a> <a href="tharsis/prof/ranges/VariableRange.html#save">save</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get a copy of the range in its current state.
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Functions</h2><table><tr><td><a href="tharsis/prof/ranges/VariableRange.html#this">this</a></td><td></td><td><p>Construct a VariableRange processing events from a range of Events.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/VariableRange.html#front">front</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get the current variable.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/VariableRange.html#popFront">popFront</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Go to the next variable.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/VariableRange.html#empty">empty</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Are there no more variables?
+</p>
+</td></tr><tr><td><span class="extrainfo"><span class="attribs"><span class="attr-property">@property</span></span></span><a href="tharsis/prof/ranges/VariableRange.html#save">save</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get a copy of the range in its current state.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>
