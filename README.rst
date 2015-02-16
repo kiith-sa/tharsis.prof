@@ -103,8 +103,8 @@ Tharsis.prof requires DMD 2.066 or equivalent GDC/LDC.
       }
 
 
-For detailed documentation with more specific code examples, see the
-`API documentation <http://defenestrate.eu/docs/tharsis.prof/index.html>`_.
+For detailed documentation with more specific code examples, see the `documentation
+<http://ddocs.org/tharsis-prof/latest/index.html>`_.
 
 
 --------
@@ -115,7 +115,7 @@ Features
 * Can be used together with `Despiker <https://github.com/kiith-sa/despiker>`_ to visually
   profile a game in real time (`tutorial
   <http://defenestrate.eu/docs/despiker/tutorials/getting_started.html>`_).
-* Detailed `API documentation <http://defenestrate.eu/docs/tharsis.prof/index.html>`_
+* Detailed `API documentation <http://ddocs.org/tharsis-prof/latest/index.html>`_ (on `DDocs.org <http://ddocs.org>`_)
   with code examples.
 * Profile data can be analyzed in real time within a game (between frames, or top-level
   zones)
