@@ -6,6 +6,9 @@
 /// Support for <a href="https://github.com/kiith-sa/despiker">Despiker</a>
 module tharsis.prof.despikersender;
 
+static if(__VERSION__ < 2066)
+    private enum nogc;
+
 import std.algorithm;
 import std.array;
 import std.exception: assumeWontThrow, ErrnoException;
@@ -126,7 +129,7 @@ public:
      * At the moment, DespikerSender does not support resetting profilers. Neither of the
      * passed profilers may be reset() while the DespikerSender is being used.
      */
-    this(Profiler[] profilers) @safe pure nothrow @nogc
+    @nogc this(Profiler[] profilers) @safe pure nothrow
     {
         assert(!profilers.empty, "0 profilers passed to DespikerSender constructor");
         assert(profilers.length <= maxProfilers,
@@ -138,7 +141,7 @@ public:
     }
 
     /// Is there a Despiker instance (that we are sending to) running at the moment?
-    bool sending() @safe pure nothrow const @nogc
+    @nogc bool sending() @safe pure nothrow const
     {
         return sending_;
     }
@@ -148,7 +151,7 @@ public:
      * Affects the following calls to startDespiker(), does not affect the running
      * Despiker instance, if any.
      */
-    void frameFilter(DespikerFrameFilter rhs) @safe pure nothrow @nogc
+    @nogc void frameFilter(DespikerFrameFilter rhs) @safe pure nothrow
     {
         assert(rhs.info != "NULL",
                "DespikerFrameFilter.info must not be set to string value \"NULL\"");
@@ -244,7 +247,7 @@ public:
      * If Despiker is running, 'forgets' it, stops sending to it without closing it and
      * the next startDespiker() call will launch a new Despiker instance.
      */
-    void reset() @trusted nothrow @nogc
+    @nogc void reset() @trusted nothrow
     {
         sending_ = false;
         // Not @nogc yet, although ProcessPipes destruction should not use GC. 

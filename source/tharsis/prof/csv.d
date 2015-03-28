@@ -7,6 +7,8 @@
 /// CSV serialization.
 module tharsis.prof.csv;
 
+static if(__VERSION__ < 2066)
+    private enum nogc;
 
 import std.algorithm;
 import std.exception;
@@ -174,7 +176,7 @@ public:
     }
 
     /// Is the range empty (no more events)?
-    bool empty() @safe pure nothrow @nogc { return csv_.empty; }
+    @nogc bool empty() @safe pure nothrow { return csv_.empty; }
 }
 ///
 unittest

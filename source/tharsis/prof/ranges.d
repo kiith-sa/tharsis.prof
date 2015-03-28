@@ -10,6 +10,9 @@
  */
 module tharsis.prof.ranges;
 
+static if(__VERSION__ < 2066)
+    private enum nogc;
+
 import std.algorithm;
 import std.array;
 import std.range;
@@ -39,7 +42,7 @@ struct ZoneData
     const(char)[] info;
 
     /// Get the end time of the zone since recording started in hectonanoseconds.
-    ulong endTime() @safe pure nothrow const @nogc { return startTime + duration; }
+    @nogc ulong endTime() @safe pure nothrow const { return startTime + duration; }
 }
 
 
@@ -63,7 +66,7 @@ struct ZoneData
  * }
  * --------------------
  */
-ZoneRange!EventRange zoneRange(const(ubyte)[] profileData) @safe pure nothrow @nogc
+@nogc ZoneRange!EventRange zoneRange(const(ubyte)[] profileData) @safe pure nothrow
 {
     return ZoneRange!EventRange(profileData.eventRange);
 }
@@ -86,8 +89,8 @@ package struct ZoneInfo
  *
  * The ZInfo type must have all ZoneInfo members (e.g. by wrapping ZoneInfo with alias this).
  */
-package ZoneData buildZoneData(ZInfo)(const(ZInfo)[] stack, ulong endTime)
-    @safe pure nothrow @nogc
+@nogc package ZoneData buildZoneData(ZInfo)(const(ZInfo)[] stack, ulong endTime)
+    @safe pure nothrow
 {
     const info = stack.back;
     ZoneData result;
@@ -140,7 +143,7 @@ struct NamedVariable
  * }
  * --------------------
  */
-VariableRange!EventRange variableRange(const(ubyte)[] profileData) @safe pure nothrow @nogc 
+@nogc VariableRange!EventRange variableRange(const(ubyte)[] profileData) @safe pure nothrow
 {
     return VariableRange!EventRange(profileData.eventRange);
 }
@@ -188,14 +191,14 @@ public:
      * events = The event range to read from. VariableRange will create a (shallow) copy,
      *          and will not consume this range.
      */
-    this(ERange events) @safe pure nothrow @nogc 
+    @nogc this(ERange events) @safe pure nothrow
     {
         events_ = events.save;
         getToNextVariableEnd();
     }
 
     /// Get the current variable.
-    NamedVariable front() @safe pure nothrow @nogc
+    @nogc NamedVariable front() @safe pure nothrow
     {
         assert(!empty, "Can't get front of an empty range");
 
@@ -212,7 +215,7 @@ public:
     }
 
     /// Go to the next variable.
-    void popFront() @safe pure nothrow @nogc
+    @nogc void popFront() @safe pure nothrow
     {
         assert(!empty, "Can't pop front of an empty range");
         // Pop the Info event reached by the last getToNextVariableEnd() call.
@@ -222,11 +225,11 @@ public:
     }
 
     /// Are there no more variables?
-    bool empty() @safe pure nothrow @nogc { return events_.empty; }
+    @nogc bool empty() @safe pure nothrow { return events_.empty; }
 
     // Must be a property, isForwardRange won't work otherwise.
     /// Get a copy of the range in its current state.
-    @property VariableRange save() @safe pure nothrow const @nogc { return this; }
+    @nogc @property VariableRange save() @safe pure nothrow const { return this; }
 
 private:
     /* Processes events_ until an Info event after a VariableEvent, or the end of events_,
@@ -237,7 +240,7 @@ private:
      * Initializes variable_ with any read variable event, but only exits after reaching
      * an info event; any variable event not followed by an info event will be ignored.
      */
-    void getToNextVariableEnd() @safe pure nothrow @nogc
+    @nogc void getToNextVariableEnd() @safe pure nothrow
     {
         for(; !events_.empty; events_.popFront())
         {
@@ -377,10 +380,10 @@ public:
      * events = The event range to read from. ZoneRange will create a (shallow) copy,
      *          and will not consume this range.
      */
-    this(ERange events) @safe pure nothrow @nogc { events_ = events.save; }
+    @nogc this(ERange events) @safe pure nothrow { events_ = events.save; }
 
     /// Get the current zone.
-    ZoneData front() @safe pure nothrow @nogc
+    @nogc ZoneData front() @safe pure nothrow
     {
         assert(!empty, "Can't get front of an empty range");
 
@@ -405,7 +408,7 @@ public:
     }
 
     /// Go to the next zone.
-    void popFront() @safe pure nothrow @nogc
+    @nogc void popFront() @safe pure nothrow
     {
         assert(!empty, "Can't pop front of an empty range");
 
@@ -425,7 +428,7 @@ public:
     }
 
     /// Are there no more zones?
-    bool empty() @safe pure nothrow @nogc
+    @nogc bool empty() @safe pure nothrow
     {
         // Must call this; otherwise, if there are no zone events in the entire range,
         // this would still return true as long as events_ is empty.
@@ -435,7 +438,7 @@ public:
 
     // Must be a property, isForwardRange won't work otherwise.
     /// Get a copy of the range in its current state.
-    @property ZoneRange save() @safe pure nothrow const @nogc { return this; }
+    @nogc @property ZoneRange save() @safe pure nothrow const { return this; }
 
 private:
     /* Processes events_ until a ZoneEnd event or the end of events_ is reached.
@@ -444,7 +447,7 @@ private:
      *
      * Adds any ZoneStart events to the stack.
      */
-    void getToNextZoneEnd() @safe pure nothrow @nogc
+    @nogc void getToNextZoneEnd() @safe pure nothrow
     {
         for(; !events_.empty; events_.popFront())
         {
@@ -604,7 +607,7 @@ unittest
  * }
  * --------------------
  */
-EventRange eventRange(const(ubyte)[] profileData) @safe pure nothrow @nogc
+@nogc EventRange eventRange(const(ubyte)[] profileData) @safe pure nothrow
 {
     return EventRange(profileData);
 }
@@ -636,7 +639,7 @@ private:
     bool empty_;
 
 public:
-@safe pure nothrow @nogc:
+    @nogc @safe pure nothrow:
     /** Construct an EventRange.
      *
      * Params:
@@ -681,7 +684,7 @@ package:
      * Used by code in tharsis.prof package to determine end position of an event in
      * profile data without increasing memory overhead of EventRange.
      */
-    size_t bytesLeft() @safe pure nothrow const @nogc
+    @nogc size_t bytesLeft() @safe pure nothrow const
     {
         return profileData_.length;
     }
@@ -713,7 +716,7 @@ private:
                "Invalid profiling data; not long enough to store expected time gap bytes");
 
         // Parses 'time bytes' each encoding 7 bits of a time span value
-        void parseTimeBytes(uint count) nothrow @nogc
+        @nogc void parseTimeBytes(uint count) nothrow
         {
             assert(count <= 8, "Time byte count can't be more than 8 bytes");
 
@@ -777,7 +780,7 @@ private:
                 front_.var_.type_ = cast(VariableType)type;
 
                 // Decode a 7-bit variable value at the front of profileData.
-                V decode(V)() @trusted nothrow @nogc
+                @nogc V decode(V)() @trusted nothrow
                 {
                     enum VType = variableType!V;
                     enum encBytes = variable7BitLengths[VType];
