@@ -14,6 +14,7 @@ import std.algorithm;
 import std.array;
 import std.range;
 import std.traits;
+import std.typetuple:TypeTuple;
 
 import tharsis.prof.event;
 import tharsis.prof.profiler;
