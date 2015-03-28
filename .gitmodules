@@ -1,3 +1,0 @@
-[submodule "submodules/tinyendian"]
-	path = submodules/tinyendian
-	url = https://github.com/Extrawurst/tinyendian.git
