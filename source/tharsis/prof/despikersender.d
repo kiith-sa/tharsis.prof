@@ -6,15 +6,13 @@
 /// Support for <a href="https://github.com/kiith-sa/despiker">Despiker</a>
 module tharsis.prof.despikersender;
 
-static if(__VERSION__ < 2066)
-    private enum nogc;
-
 import std.algorithm;
 import std.array;
 import std.exception: assumeWontThrow, ErrnoException;
 import std.string;
 
 import tharsis.prof.profiler;
+import tharsis.prof.compat;
 
 
 /// Exception thrown at DespikerSender errors.

@@ -7,8 +7,7 @@
 /// Profiling event and its members.
 module tharsis.prof.event;
 
-static if(__VERSION__ < 2066)
-    private enum nogc;
+import tharsis.prof.compat;
 
 /** Types of events recorded by Profiler.
  */

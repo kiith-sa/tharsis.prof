@@ -18,6 +18,7 @@ import std.typetuple:TypeTuple;
 
 import tharsis.prof.event;
 import tharsis.prof.profiler;
+import tharsis.prof.compat;
 
 public import tharsis.prof.accumulatedzonerange;
 

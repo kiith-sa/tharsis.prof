@@ -8,9 +8,6 @@
  * ranges/generators. */
 module tharsis.prof.chunkyeventlist;
 
-static if(__VERSION__ < 2066)
-    private enum nogc;
-
 import std.algorithm;
 import std.array;
 import std.stdio;
@@ -18,6 +15,7 @@ import std.stdio;
 import tharsis.prof.event;
 import tharsis.prof.profiler;
 import tharsis.prof.ranges;
+import tharsis.prof.compat;
 
 
 /** A list of events providing range 'slices', using chunks of profiling data for storage.

@@ -29,14 +29,12 @@
  */
 module tharsis.prof.profiler;
 
-static if(__VERSION__ < 2066)
-    private enum nogc;
-
 import std.algorithm;
 import std.datetime;
 import std.exception;
 
 import tharsis.prof.event;
+import tharsis.prof.compat;
 
 // We're measuring in hectonanoseconds.
 //

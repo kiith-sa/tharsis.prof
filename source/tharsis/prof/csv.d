@@ -7,9 +7,6 @@
 /// CSV serialization.
 module tharsis.prof.csv;
 
-static if(__VERSION__ < 2066)
-    private enum nogc;
-
 import std.algorithm;
 import std.exception;
 import std.format;
@@ -19,6 +16,7 @@ import std.typetuple;
 import tharsis.prof.event;
 import tharsis.prof.profiler;
 import tharsis.prof.ranges;
+import tharsis.prof.compat;
 
 
 /** Write Events from a range to CSV.
