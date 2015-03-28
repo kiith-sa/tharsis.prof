@@ -268,6 +268,7 @@ unittest
     // to show how to do this without using the GC.
 
     import tharsis.prof;
+    import std.algorithm:min,max;
 
     const storageLength = Profiler.maxEventBytes + 2048;
 
