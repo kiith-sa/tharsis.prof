@@ -10,9 +10,6 @@
  */
 module tharsis.prof.ranges;
 
-static if(__VERSION__ < 2066)
-    private enum nogc;
-
 import std.algorithm;
 import std.array;
 import std.range;
