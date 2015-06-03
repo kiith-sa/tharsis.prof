@@ -35,8 +35,6 @@ Assuming you use `dub <http://code.dlang.org/about>`_, add this line::
 
 to the ``"dependencies"`` in your project's ``dub.json``/``package.json``.
 
-Tharsis.prof requires DMD 2.066 or equivalent GDC/LDC.
-
 
 * Recording profiling data:
 
