@@ -313,6 +313,7 @@ unittest
     {
         if(aPtr is null) { return ZoneStats(z.duration, z.duration, 1); }
 
+        import std.algorithm: min, max;
         return ZoneStats(min(aPtr.minDuration, z.duration),
                         max(aPtr.maxDuration, z.duration),
                         aPtr.instanceCount + 1);

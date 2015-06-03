@@ -716,6 +716,7 @@ private:
         {
             assert(count <= 8, "Time byte count can't be more than 8 bytes");
 
+            import std.typetuple;
             // This unrolls the loop at compile-time (for performance).
             foreach(b; TypeTuple!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
             {
