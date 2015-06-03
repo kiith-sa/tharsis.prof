@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>Profiler</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/profiler.html>profiler</a>.</small><span class="highlight">Profiler</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/profiler.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/profiler.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public final class Profiler
+</code></pre>
+<div class="section "><p>Records profiling events into user-specified buffer.
+</p>
+
+
+</div>
+<div class="section"><p>Used together with Zone to record data and with EventRange/ZoneRange/etc. for analysis.
+</p>
+<p> Profiler writes profiling data into a byte buffer passed to Profiler constructor by the
+ user. Once there is not enough space to write any more profiling events, the profiler
+ quietly ignores any events (this can be checked by outOfSpace()). Profiler <b>never
+ allocates heap memory</b> by itself.
+</p>
+<p> Recorded data can be accessed at any time through profileData() and analyzed with help
+ of EventRange, ZoneRange and other tharsis.prof utilities. reset() can be used to
+ clear recorded data and start recording from scratch.
+</p>
+
+
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> Profiler is <b>not</b> designed to be used from multiple threads. If you need to profile
+ multiple threads, create a separate Profiler for each thread and either analyze the
+ results through separate EventRange/ZoneRange instances, or merge them through
+ accumulatedZoneRange.
+</p>
+
+</div>
+
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> Accessing profile data from an out-of-space profiler or in the middle of a zone will
+ result in an EventRange that's missing some zone end events. Incomplete raw profiling
+ results or EventRanges should never be concatenated. ZoneRange will automatically end
+ the unfinished zones.
+</p>
+<p> Memory consumption:
+</p>
+<p> Depending on the worload and number of zones, Profiler can eat through assigned memory
+ rather quickly.  With 10000 zones at 120 FPS the overhead is going to be around 14 MiB
+ <b>per second</b>.
+</p>
+
+</div>
+
+</div>
+<div class="section "><h2>Example</h2>
+<pre><code>ubyte[] storage = new ubyte[<a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">Profiler.maxEventBytes</a> + 2048];
+auto profiler = new <a href="tharsis/prof/profiler/Profiler.html">Profiler</a>(storage);
+
+// Simulate 16 'frames'
+foreach(frame; 0 .. 16)
+{
+    <a href="tharsis/prof/profiler/Zone.html">Zone</a> topLevel = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+    // Record a variable event (useful for tracking FPS, entity count, network
+    // traffic, etc.). Only uint, int and float supported at the moment.
+    profiler.<a href="tharsis/prof/profiler/Profiler.html#variableEvent">variableEvent</a>!"frame" = cast(uint)frame;
+
+    // Simulate frame overhead. Replace <a href="tharsis/prof/profiler/Profiler.html#this">this</a> with your frame code.
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameStart");
+        foreach(i; 0 .. 1000) { continue; }
+    }
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameCore");
+        foreach(i; 0 .. 10000) { continue; }
+    }
+}
+
+// see tharsis.profiler.ranges for how to process recorded data
+
+</code></pre>
+
+</div>
+<div class="section "><h2>Example</h2>
+<pre><code>// This example uses C malloc/free and std.typecons.scoped to show how to use <a href="tharsis/prof/profiler/Profiler.html">Profiler</a>
+// without GC allocations.
+
+const storageLength = <a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">Profiler.maxEventBytes</a> + 2048;
+
+import core.stdc.stdlib;
+// A simple typed-slice malloc wrapper function would avoid the ugly cast/slicing.
+ubyte[] storage  = (cast(ubyte*)malloc(storageLength))[0 .. storageLength];
+scope(exit) { free(storage.ptr); }
+
+import std.typecons;
+auto profiler = scoped!<a href="tharsis/prof/profiler/Profiler.html">Profiler</a>(storage);
+
+// std.typecons.scoped! stores the <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> on the stack.
+// Simulate 16 'frames'
+foreach(frame; 0 .. 16)
+{
+    <a href="tharsis/prof/profiler/Zone.html">Zone</a> topLevel = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+
+    // Simulate frame overhead. Replace <a href="tharsis/prof/profiler/Profiler.html#this">this</a> with your frame code.
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameStart");
+        foreach(i; 0 .. 1000) { continue; }
+    }
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameCore");
+        foreach(i; 0 .. 10000) { continue; }
+    }
+}
+
+// see tharsis.profiler.ranges for how to process recorded data
+
+</code></pre>
+
+</div>
+</div><a class="anchor" id="maxEventBytes"></a><div class="symbol"><div class="description"><pre><code>public auto maxEventBytes
+</code></pre>
+<div class="section "><p>Maximum size of any single event in bytes. Used to quickly check if we're out of space.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public this(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>[] profileBuffer) @safe nothrow
+</code></pre>
+<div class="section "><p>Construct a Profiler writing profiling data to specified buffer.
+</p>
+
+
+</div>
+<div class="section"><p>Profiler doesn't allocate heap memory. It will write profiling data into given
+ buffer until it runs out of space, at which point it will silently stop profiling
+ (this can be detected by outOfSpace() ).
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">profileBuffer</td><td class="paramDoc"><p>Buffer to write profile data to. Must be at least Profiler.maxEventBytes long.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><a class="anchor" id="outOfSpace"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/profiler/Profiler.html#outOfSpace">outOfSpace</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Is the profiler out of space?
+</p>
+
+
+</div>
+<div class="section"><p>When the profiler uses up all memory passed to the constructor, it quietly stops
+ profiling. This can be used to determine if that has happened.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="diagnostics"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/profiler/Profiler.Diagnostics.html">Diagnostics</a> <a href="tharsis/prof/profiler/Profiler.html#diagnostics">diagnostics</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get diagnostics about the profiler, such as which events are the most common.
+</p>
+
+
+</div>
+<div class="section"><p>Useful for profiling the profiler.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="checkpointEvent"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/profiler/Profiler.html#checkpointEvent">checkpointEvent</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Emit a checkpoint event.
+</p>
+
+
+</div>
+<div class="section"><p>A checkpoint event inserts the absolute time of the last event before the
+ checkpoint. This allows reconstrucing event times from the checkpoint instead of
+ from the start. It also inserts a zero byte into profiling data, which no other
+ event can do. This allows to rewind profiler data without having to go all the way
+ to the start.
+</p>
+
+
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> neither of these options is actually exploited at the moment; but they should
+       be useful for profiling visualizers and when processing massive profiling
+       outputs.
+</p>
+
+</div>
+
+</div>
+</div></div><a class="anchor" id="variableEvent"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/profiler/Profiler.html#variableEvent">variableEvent</a>(string name, V)(const V value) @trusted nothrow
+</code></pre>
+<div class="section "><p>Emit a variable event.
+</p>
+
+
+</div>
+<div class="section"><p>Used to keep track of various variables that change over time, e.g. FPS, network
+ traffic, entity count...; Despiker supports viewing the value of a variable once
+ per frame.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">name</td><td class="paramDoc"><p>Variable name (specified at compile-time). The variable event itself does not contain the name; the name is stored in an info event immediately after the variable event.
+</p>
+</td></tr>
+<tr class="param"><td class="paramName">V</td><td class="paramDoc"><p>Variable type. Only int, uint and float are supported at the moment.
+</p>
+</td></tr>
+<tr class="param"><td class="paramName">value</td><td class="paramDoc"><p>Value of the variable
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Example</h2>
+
+ <pre><code> // <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> profiler
+ profiler.<a href="tharsis/prof/profiler/Profiler.html#variableEvent">variableEvent</a>!"FPS"(4.5f);
+</code></pre>
+
+</div>
+</div></div><a class="anchor" id="zoneStartEvent"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">uint</a> <a href="tharsis/prof/profiler/Profiler.html#zoneStartEvent">zoneStartEvent</a>(const string info) @system nothrow
+</code></pre>
+<div class="section "><p>Emit a zone start event, when code enters a zone.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">info</td><td class="paramDoc"><p>Information about the zone (e.g. its name). Will be added as an info event following the zone start event. <b>Must not</b> be empty or longer than 255 characters and <b>must not</b> contain zero (<code class="d_inlinecode">'\0'</code>) characters.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Returns</h2>
+<p> Nesting level of the newly started zone. Must be passed when corresponding
+          zoneEndEvent() is called. Used to ensure child events end before their
+          parent events.
+</p>
+
+
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> zoneStartEvent should only be aleed directly where the Zone struct is not
+       sufficient (i.e. where a zone cannot be wrapped in a scope).
+</p>
+
+</div>
+
+</div>
+</div></div><a class="anchor" id="zoneEndEvent"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/profiler/Profiler.html#zoneEndEvent">zoneEndEvent</a>(const <a href="http://dlang.org/type.html#basic-data-types">uint</a> nestLevel) @system nothrow
+</code></pre>
+<div class="section "><p>Emit a zone end event, when code exits a zone.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">nestLevel</td><td class="paramDoc"><p>Nesting level of the zone. Used to check that zones are exited in the correct (hierarchical) order, i.e. a child zone must be ended before its parent zone.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> zoneEndEvent should only be called directly where the Zone struct is not
+       sufficient (i.e. where a zone cannot be wrapped in a scope).
+</p>
+
+</div>
+
+</div>
+</div></div><a class="anchor" id="reset"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/profiler/Profiler.html#reset">reset</a>() @safe nothrow
+</code></pre>
+<div class="section "><p>Reset the profiler.
+</p>
+
+
+</div>
+<div class="section"><p>Clears all profiled data. Reuses the buffer passed by the constructor to start
+ profiling from scratch.
+</p>
+<p> Can only be called outside of any Zone.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="profileData"></a><div class="symbol"><div class="description"><pre><code>public const(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[] <a href="tharsis/prof/profiler/Profiler.html#profileData">profileData</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get the raw data recorded by the profiler.
+</p>
+
+
+</div>
+<div class="section"><p>This is a slice to the buffer passed to Profiler's constructor.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="zoneNestLevel"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">uint</a> <a href="tharsis/prof/profiler/Profiler.html#zoneNestLevel">zoneNestLevel</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get the nest level of the current zone, if any.
+</p>
+
+
+</div>
+<div class="section"><p>0 means the profiler is not in any zone.
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Variables</h2><table><tr><td><a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">maxEventBytes</a></td><td><pre><code>auto
+</code></pre>
+</td><td><p>Maximum size of any single event in bytes. Used to quickly check if we're out of space.
+</p>
+</td></tr></table><h2>Functions</h2><table><tr><td><a href="tharsis/prof/profiler/Profiler.html#this">this</a></td><td></td><td><p>Construct a Profiler writing profiling data to specified buffer.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#outOfSpace">outOfSpace</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Is the profiler out of space?
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#diagnostics">diagnostics</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get diagnostics about the profiler, such as which events are the most common.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#checkpointEvent">checkpointEvent</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Emit a checkpoint event.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#variableEvent">variableEvent</a><span class="extrainfo"><span class="method-attribs"><span class="attr-trusted">@trusted</span>, <span class="attr-nothrow">nothrow</span></span></span></td><td></td><td><p>Emit a variable event.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#zoneStartEvent">zoneStartEvent</a><span class="extrainfo"><span class="method-attribs"><span class="attr-system">@system</span>, <span class="attr-nothrow">nothrow</span></span></span></td><td></td><td><p>Emit a zone start event, when code enters a zone.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#zoneEndEvent">zoneEndEvent</a><span class="extrainfo"><span class="method-attribs"><span class="attr-system">@system</span>, <span class="attr-nothrow">nothrow</span></span></span></td><td></td><td><p>Emit a zone end event, when code exits a zone.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#reset">reset</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-nothrow">nothrow</span></span></span></td><td></td><td><p>Reset the profiler.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#profileData">profileData</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get the raw data recorded by the profiler.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Profiler.html#zoneNestLevel">zoneNestLevel</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get the nest level of the current zone, if any.
+</p>
+</td></tr></table><h2>Structs</h2><table><tr><td><a href="tharsis/prof/profiler/Profiler.Diagnostics.html">Diagnostics</a></td><td></td><td><p>Diagnostics used to profile the profiler.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>ChunkyEventList</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/chunkyeventlist.html>chunkyeventlist</a>.</small><span class="highlight">ChunkyEventList</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/chunkyeventlist.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/chunkyeventlist.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct ChunkyEventList
+</code></pre>
+<div class="section "><p>A list of events providing range 'slices', using chunks of profiling data for storage.
+</p>
+
+
+</div>
+<div class="section"><p>Useful for real-time profiling (used by Despiker); can add new chunks of profile data
+ in real time and create ranges to generate events in specified time or chunk slices
+ without processing the preceding chunks.
+</p>
+
+
+</div>
+</div><a class="anchor" id="chunkStorage_"></a><div class="symbol"><div class="description"><pre><code>private <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Chunk.html">Chunk</a>[] chunkStorage_
+</code></pre>
+<div class="section "><p>Storage for chunks (chunk slices, not chunk data itself).
+</p>
+
+
+</div>
+<div class="section"><p>Passed by constructor or provideStorage(). Never reallocated internally.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="chunks_"></a><div class="symbol"><div class="description"><pre><code>private <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Chunk.html">Chunk</a>[] chunks_
+</code></pre>
+<div class="section "><p>A slice of chunkStorage_ that contains actually used chunks.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public this(<a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Chunk.html">Chunk</a>[] chunkStorage) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct a ChunkyEventList.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">chunkStorage</td><td class="paramDoc"><p>Space allocated for profile data chunks (not chunk data itself). outOfSpace() must be called before adding chunks to determine if this space has been spent, and provideStorage() must be called to allocate more chunks after running out of space. ChunkyEventList never allocates by itself.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><a class="anchor" id="outOfSpace"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#outOfSpace">outOfSpace</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Is the ChunkyEventList out of space?
+</p>
+
+
+</div>
+<div class="section"><p>If true, more chunk storage must be provided by calling provideStorage().
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="provideStorage"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#provideStorage">provideStorage</a>(<a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Chunk.html">Chunk</a>[] storage) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Provide more space to store chunks (not chunk data itself).
+</p>
+
+
+</div>
+<div class="section"><p>Must be called when outOfSpace() returns true. Must provide more space than the
+ preceding provideStorage() or constructor call.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="generator"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Generator.html">Generator</a> <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#generator">generator</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get a generator to produce profiling events from the list over time as chunks are added.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="addChunk"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#addChunk">addChunk</a>(immutable(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[] data) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Add a new chunk of profile data.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">data</td><td class="paramDoc"><p>Chunk of data to add. Note that the first event in the chunk must have higher time value for the chunk to be added (false will be returned on error). This can be ensured by emitting a checkpoint event with the Profiler that produces the chunk before any other events in the chunk. Also note that data <b>must not</b> be deallocated for as long as the ChunkyEventList exists; the ChunkyEventList will use data directly instead of creating a copy.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Returns</h2>
+<p> true on success, false if the first event in the chunk didn't occur in
+          time after the last event already in the list.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="slice"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Slice.html">Slice</a> <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#slice">slice</a>(<a href="tharsis/prof/chunkyeventlist/ChunkyEventList.SliceExtents.html">SliceExtents</a> slice) @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get an exact slice of the ChunkyEventList as described by a SliceExtents instance.
+</p>
+
+
+</div>
+<div class="section"><p>SliceExtents is currently only generated by the ChunkyZoneGenerator to allow
+ getting exact slices containing only the events in any single zone, as opposed to
+ all events that occured at the time of that zone (e.g. an end of a preceding zone
+ that occured in the same hectonanosecond a new zone started in).
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="timeSlice"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.TimeSlice.html">TimeSlice</a> <a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#timeSlice">timeSlice</a>(
+    <a href="http://dlang.org/type.html#basic-data-types">ulong</a> start, 
+    <a href="http://dlang.org/type.html#basic-data-types">ulong</a> end) @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get a slice of the ChunkyEventList containing events in specified time range.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">start</td><td class="paramDoc"><p>Start of the time slice. Events occuring at this time will be included.
+</p>
+</td></tr>
+<tr class="param"><td class="paramName">end</td><td class="paramDoc"><p>End of the time slice. Events occuring at this time will <code class="d_inlinecode">not</code> be included.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><div class="section members"><h2>Variables</h2><table><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#chunkStorage_">chunkStorage_</a></td><td><pre><code><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Chunk.html">Chunk</a>[]
+</code></pre>
+</td><td><p>Storage for chunks (chunk slices, not chunk data itself).
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#chunks_">chunks_</a></td><td><pre><code><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Chunk.html">Chunk</a>[]
+</code></pre>
+</td><td><p>A slice of chunkStorage_ that contains actually used chunks.
+</p>
+</td></tr></table><h2>Functions</h2><table><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#this">this</a></td><td></td><td><p>Construct a ChunkyEventList.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#outOfSpace">outOfSpace</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Is the ChunkyEventList out of space?
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#provideStorage">provideStorage</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Provide more space to store chunks (not chunk data itself).
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#generator">generator</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get a generator to produce profiling events from the list over time as chunks are added.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#addChunk">addChunk</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Add a new chunk of profile data.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#slice">slice</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get an exact slice of the ChunkyEventList as described by a SliceExtents instance.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.html#timeSlice">timeSlice</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get a slice of the ChunkyEventList containing events in specified time range.
+</p>
+</td></tr></table><h2>Structs</h2><table><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Chunk.html">Chunk</a></td><td></td><td><p>A single chunk of profiling data.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Generator.html">Generator</a></td><td></td><td><p>Generates events from the event list as chunks are added.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.Slice.html">Slice</a></td><td></td><td><p>A 'slice' of events in the chunky event list.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.TimeSlice.html">TimeSlice</a></td><td></td><td><p>A 'slice' of events based on start end end time.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyEventList.SliceExtents.html">SliceExtents</a></td><td></td><td><p>Extents of a Slice.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

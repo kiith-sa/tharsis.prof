@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>EventRange</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/ranges.html>ranges</a>.</small><span class="highlight">EventRange</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/ranges.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/ranges.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct EventRange
+</code></pre>
+<div class="section "><p>Light-weight type-safe range that iterates over events in profile data.
+</p>
+
+
+</div>
+<div class="section"><p>EventRange is a 'low-level' range to base other ranges or structures (such as
+ ZoneRange) on top of.
+</p>
+<p> Doesn't allocate any heap memory.
+</p>
+
+
+</div>
+<div class="section "><h2>Example</h2>
+<pre><code>// Filter zones based on the info string. Useful to determine durations of only
+// certain zones.
+
+import <a href="tharsis/prof.html">tharsis.prof</a>;
+
+auto storage  = new ubyte[<a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">Profiler.maxEventBytes</a> + 2048];
+auto profiler = new <a href="tharsis/prof/profiler/Profiler.html">Profiler</a>(storage);
+
+// Simulate 8 'frames'
+foreach(frame; 0 .. 8)
+{
+    <a href="tharsis/prof/profiler/Zone.html">Zone</a> topLevel = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+
+    // Simulate frame overhead. Replace <a href="tharsis/prof/ranges/EventRange.html#this">this</a> with your frame code.
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameStart");
+        foreach(i; 0 .. 1000) { continue; }
+    }
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameCore");
+        foreach(i; 0 .. 10000) { continue; }
+    }
+}
+
+import std.stdio;
+// Create an <a href="tharsis/prof/ranges/EventRange.html">EventRange</a> from profile data with UFCS syntax.
+auto events = profiler.profileData.<a href="tharsis/prof/ranges.html#eventRange">eventRange</a>;
+// Foreach over range calls <a href="tharsis/prof/ranges/EventRange.html#popFront">popFront</a>()/<a href="tharsis/prof/ranges/EventRange.html#front">front</a>()/<a href="tharsis/prof/ranges/EventRange.html#empty">empty</a>() internally
+foreach(event; events)
+{
+    writeln(event);
+}
+
+// Get a range of only the events with start time between 1000 and 5000 (hectonanoseconds)
+//
+// This doesn't filter anything or allocate; filtering only happens once the
+// range is iterated over (but if we did want to do the filtering right now, e.g. to
+// get an array of filtered results, we'd suffix <a href="tharsis/prof/ranges/EventRange.html#this">this</a> with ".array")
+auto filtered = events.filter!(e => e.time > 1500 && e.time < 2000);
+// Here, we print the IDs of events between 10000 and 50000 hectonanoseconds
+foreach(id; filtered.map!(e => e.id))
+{
+    writeln(id);
+}
+
+// And here we count the number of events between 1000 and 5000
+writeln(filtered.count);
+
+</code></pre>
+
+</div>
+</div><a class="anchor" id="profileData_"></a><div class="symbol"><div class="description"><pre><code>private const(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[] profileData_
+</code></pre>
+<div class="section "><p>Raw profile data recorded by a Profiler.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public @safe pure nothrow @nogc this(const(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[] profileData)
+</code></pre>
+<div class="section "><p>Construct an EventRange.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">profileData</td><td class="paramDoc"><p>Profile data recorded by a Profiler. Note that modifying or concatenating raw profile data is unsafe unless you know what you're doing.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><a class="anchor" id="front"></a><div class="symbol"><div class="description"><pre><code>public @safe pure nothrow @nogc <a href="tharsis/prof/event/Event.html">Event</a> <a href="tharsis/prof/ranges/EventRange.html#front">front</a>() const
+</code></pre>
+<div class="section "><p>Get the current event.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="popFront"></a><div class="symbol"><div class="description"><pre><code>public @safe pure nothrow @nogc <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/ranges/EventRange.html#popFront">popFront</a>()
+</code></pre>
+<div class="section "><p>Move to the next event.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="empty"></a><div class="symbol"><div class="description"><pre><code>public @safe pure nothrow @nogc <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/ranges/EventRange.html#empty">empty</a>() const
+</code></pre>
+<div class="section "><p>Are there no more events?
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="save"></a><div class="symbol"><div class="description"><pre><code>public @safe pure nothrow @nogc @property <a href="tharsis/prof/ranges/EventRange.html">EventRange</a> <a href="tharsis/prof/ranges/EventRange.html#save">save</a>() const
+</code></pre>
+<div class="section "><p>Get a copy of the range in its current state.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="bytesLeft"></a><div class="symbol"><div class="description"><pre><code>package @safe pure nothrow @nogc size_t <a href="tharsis/prof/ranges/EventRange.html#bytesLeft">bytesLeft</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get the number of remaining bytes in the underlying profile data.
+</p>
+
+
+</div>
+<div class="section"><p>Used by code in tharsis.prof package to determine end position of an event in
+ profile data without increasing memory overhead of EventRange.
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Variables</h2><table><tr><td><a href="tharsis/prof/ranges/EventRange.html#profileData_">profileData_</a></td><td><pre><code>const(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[]
+</code></pre>
+</td><td><p>Raw profile data recorded by a Profiler.
+</p>
+</td></tr></table><h2>Functions</h2><table><tr><td><a href="tharsis/prof/ranges/EventRange.html#this">this</a></td><td></td><td><p>Construct an EventRange.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/EventRange.html#front">front</a><span class="extrainfo"><span class="method-attribs"><span class="attr-const">const</span></span></span></td><td></td><td><p>Get the current event.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/EventRange.html#popFront">popFront</a><span class="extrainfo"></span></td><td></td><td><p>Move to the next event.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/EventRange.html#empty">empty</a><span class="extrainfo"><span class="method-attribs"><span class="attr-const">const</span></span></span></td><td></td><td><p>Are there no more events?
+</p>
+</td></tr><tr><td><span class="extrainfo"><span class="attribs"><span class="attr-property">@property</span></span></span><a href="tharsis/prof/ranges/EventRange.html#save">save</a><span class="extrainfo"><span class="method-attribs"><span class="attr-const">const</span></span></span></td><td></td><td><p>Get a copy of the range in its current state.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/EventRange.html#bytesLeft">bytesLeft</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get the number of remaining bytes in the underlying profile data.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

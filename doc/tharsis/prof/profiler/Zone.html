@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>Zone</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/profiler.html>profiler</a>.</small><span class="highlight">Zone</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/profiler.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/profiler.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct Zone
+</code></pre>
+<div class="section "><p>_Zone of profiled code.
+</p>
+
+
+</div>
+<div class="section"><p>Emits a zone start event (recording start time) at construction and a zone end event
+ (recording end time) at destruction.
+</p>
+
+
+</div>
+<div class="section"><h2>Examples</h2>
+
+ <pre><code> // Zones can be nested:
+ while(!done)
+ {
+     auto frameZone = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+     {
+         auto renderingZone = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "rendering");
+
+         // do rendering here
+     }
+     {
+         auto physicsZone = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "physics");
+
+         // do physics here
+     }
+ }
+</code></pre>
+
+ <pre><code> // A nested zone must be fully contained in its parent zone, e.g. <a href="tharsis/prof/profiler/Zone.html#this">this</a> won't work:
+ auto zone1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "zone1");
+ while(!done)
+ {
+     auto zone2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "zone1");
+     // WRONG: zone1 destroyed manually before zone2
+     destroy(zone1);
+
+     // zone2 implicitly destroyed at the end of scope
+ }
+</code></pre>
+
+</div>
+</div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public this(
+    <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> profiler, 
+    string info) @trusted nothrow
+</code></pre>
+<div class="section "><p>Construct a zone to record with specified _profiler.
+</p>
+
+
+</div>
+<div class="section"><p>Emits the zone start event.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">profiler</td><td class="paramDoc"><p>Profiler to record into. If <code class="d_inlinecode">null</code>, the zone is ignored. This enables 'optional profiling', where instrumenting code (zones) is always present in the code but only activated when a Profiler exists.
+</p>
+</td></tr>
+<tr class="param"><td class="paramName">info</td><td class="paramDoc"><p>Zone information string. Used to recognize zones when parsing and accumulating profile data. Can be the 'name' of the zone, possibly with some extra _info (e.g. "frame": entire frame or "batch 5": fifth draw batch). <b>Must not</b> be empty or longer than 255 characters and <b>must not</b> contain zero (<code class="d_inlinecode">'\0'</code>) characters.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><a class="anchor" id="variableEvent"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/profiler/Zone.html#variableEvent">variableEvent</a>(string name, V)(const V value) @safe nothrow
+</code></pre>
+<div class="section "><p>A shortcut to call variableEvent() of the zone's profiler, if any.
+</p>
+
+
+</div>
+<div class="section"><p>If a null Profiler has been passed to the Zone's constructor, this call is ignored.
+</p>
+
+
+</div>
+<div class="section seealso">
+<h2>See Also:</h2>
+<div class="seealso-content">
+<p> Profiler.variableEvent().
+</p>
+
+</div>
+</div>
+</div></div><div class="section members"><h2>Functions</h2><table><tr><td><a href="tharsis/prof/profiler/Zone.html#this">this</a></td><td></td><td><p>Construct a zone to record with specified _profiler.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/profiler/Zone.html#variableEvent">variableEvent</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-nothrow">nothrow</span></span></span></td><td></td><td><p>A shortcut to call variableEvent() of the zone's profiler, if any.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

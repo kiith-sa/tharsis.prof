@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+<script src="../../highlight.pack.js"></script>
+<title>tharsis.prof.profiler</title>
+<base href="../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.profiler</small>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/profiler.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/profiler.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><div class="section "><p>Functionality needed to record profiling data.
+</p>
+
+
+</div>
+<div class="section"><p>Profiler keeps track of profiling events.
+</p>
+<p> Zone is an RAII struct that records precise time at its construction and destruction.
+</p>
+
+
+</div>
+<div class="section"><h2>Realtime</h2>
+<p> Recording is very lightweight, without any complicated logic or heap allocations.
+ This allows to use Tharsis-prof as a 'short-term _profiler' that can record profiling
+ data over the duration of a few frames and be detect bottlenecks in real time. Game
+ code can then react, for example by disabling resource intensive nonessential features
+ (e.g. particle systems).
+</p>
+
+
+</div>
+<div class="section"><h2>Precision</h2>
+<p> Tharsis.prof measures time in D 'hectonanoseconds', or tenths of a microsecond. This is
+ precise enough to detect irregular overhead during frames but not to profile individual
+ instructions in a linear algebra function. Such use cases are better covered by
+ a Callgrind or a sampling _profiler such as perf or CodeAnalyst. Also note that some
+ platforms may not provide access to high-precision timers and the results may be even
+ less precise. At least Linux, Windows and OSX should be alright, though.
+</p>
+
+
+</div>
+</div><div class="section members"><h2>Structs</h2><table><tr><td><a href="tharsis/prof/profiler/Zone.html">Zone</a></td><td></td><td><p>_Zone of profiled code.
+</p>
+</td></tr></table><h2>Classes</h2><table><tr><td><a href="tharsis/prof/profiler/Profiler.html">Profiler</a></td><td></td><td><p>Records profiling events into user-specified buffer.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

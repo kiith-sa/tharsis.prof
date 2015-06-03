@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>ChunkyZoneGenerator</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/chunkyeventlist.html>chunkyeventlist</a>.</small><span class="highlight">ChunkyZoneGenerator</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/chunkyeventlist.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/chunkyeventlist.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct ChunkyZoneGenerator
+</code></pre>
+<div class="section "><p>Generates zones from a ChunkyEventList as chunks are added.
+</p>
+
+
+</div>
+<div class="section"><p>Range is not useful here, since it would either have to be 'empty' after consuming
+ zones from existing chunks even though more chunks may be added, or block in
+ popFront(), which would only make it usable from separate threads/fibers.
+</p>
+
+
+</div>
+</div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public this(<a href="tharsis/prof/chunkyeventlist.html#ChunkyEventGenerator">ChunkyEventGenerator</a> events) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct a ChunkyZoneRange.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">eventList</td><td class="paramDoc"><p>Chunky event generator (returned by ChunkyEventList.generator()) to produce events to generate zones from.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><a class="anchor" id="generate"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/chunkyeventlist/ChunkyZoneGenerator.html#generate">generate</a>(out <a href="tharsis/prof/chunkyeventlist/ChunkyZoneGenerator.GeneratedZoneData.html">GeneratedZoneData</a> zone) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Try to generate the next zone.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">zone</td><td class="paramDoc"><p>The zone will be written here, if generated.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Returns</h2>
+<p> true if an zone was generated, false otherwise (all chunks that have been
+          added to the event list so far have been spent).
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Functions</h2><table><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyZoneGenerator.html#this">this</a></td><td></td><td><p>Construct a ChunkyZoneRange.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyZoneGenerator.html#generate">generate</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Try to generate the next zone.
+</p>
+</td></tr></table><h2>Structs</h2><table><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyZoneGenerator.GeneratedZoneData.html">GeneratedZoneData</a></td><td></td><td><p>ZoneData extended with ChunkyEventList slice extents to regenerate events in the zone.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/chunkyeventlist/ChunkyZoneGenerator.ExtendedZoneInfo.html">ExtendedZoneInfo</a></td><td></td><td><p>ZoneInfo extended with information about the chunk and byte containing the first event.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>DespikerSender</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/despikersender.html>despikersender</a>.</small><span class="highlight">DespikerSender</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/despikersender.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/despikersender.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public class DespikerSender
+</code></pre>
+<div class="section "><p>Sends profiling data recorded by one or more profilers to the Desiker profiler.
+</p>
+
+
+</div>
+<div class="section"><p><a href="https://github.com/kiith-sa/despiker">Despiker</a> is a real-time graphical
+ profiler based on Tharsis.prof. It visualizes zones in frames while the game is running
+ and allows the user to move between frames and automatically find the worst frame. Note
+ that at the moment, Despiker is extremely experimental and unstable.
+</p>
+<p> See <a href="http://defenestrate.eu/docs/despiker/index.html">Despiker
+ documentation</a> for more info.
+</p>
+
+
+</div>
+<div class="section"><h2>Example</h2>
+
+ <pre><code> // <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> profiler - construct it somewhere first
+
+ auto sender = new <a href="tharsis/prof/despikersender/DespikerSender.html">DespikerSender</a>([profiler]);
+
+ for(;;)
+ {
+     // Despiker will consider code in <a href="tharsis/prof/despikersender/DespikerSender.html#this">this</a> zone (named "frame") a part of a single frame.
+     // Which zone is considered a frame can be changed by setting the 
+     // sender.<a href="tharsis/prof/despikersender/DespikerSender.html#frameFilter">frameFilter</a> property.
+     auto frame = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+
+     ... frame code here, with more zones ...
+
+     if(... condition to start Despiker ...)
+     {
+         // Looks in the current directory, directory with the binary/exe and in PATH
+         // use sender.<a href="tharsis/prof/despikersender/DespikerSender.html#startDespiker">startDespiker</a>("path/to/despiker") to specify explicit path
+         sender.<a href="tharsis/prof/despikersender/DespikerSender.html#startDespiker">startDespiker</a>();
+     }
+
+     // No zones must be in progress while sender is being updated, so we end the frame
+     // early by destroying it.
+     destroy(frame);
+
+     // Update the sender, <a href="tharsis/prof/despikersender/DespikerSender.html#send">send</a> profiling data to Despiker if it is running
+     sender.<a href="tharsis/prof/despikersender/DespikerSender.html#update">update</a>();
+ }
+</code></pre>
+
+</div>
+</div><a class="anchor" id="maxProfilers"></a><div class="symbol"><div class="description"><pre><code>public auto maxProfilers
+</code></pre>
+<div class="section "><p>Maximum number of profilers we can send data from.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public this(<a href="tharsis/prof/profiler/Profiler.html">Profiler</a>[] profilers) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct a DespikerSender sending data recorded by specified profilers.
+</p>
+
+
+</div>
+<div class="section"><p>Despiker will show results from passed profilers side-by-side, matching their
+ 'frame' zones. To get meaningful results, all profilers should start profiling
+ at the same time and have one 'frame' zone for each frame of the profiled 
+ game/program.
+</p>
+<p> The main use of multiple profilers is to profile code in multiple threads
+ simultaneously. If you don't need this, pass a single profiler.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">profilers</td><td class="paramDoc"><p>Profilers the DespikerSender will send data from. Must not be empty. Must not have more than 1024 profilers.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> At the moment, DespikerSender does not support resetting profilers. Neither of the
+ passed profilers may be reset() while the DespikerSender is being used.
+</p>
+
+</div>
+
+</div>
+</div></div><a class="anchor" id="sending"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/despikersender/DespikerSender.html#sending">sending</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Is there a Despiker instance (that we are sending to) running at the moment?
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="frameFilter"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/despikersender/DespikerSender.html#frameFilter">frameFilter</a>(<a href="tharsis/prof/despikersender/DespikerFrameFilter.html">DespikerFrameFilter</a> rhs) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Set the filter to used by Despiker to determine which zones are frames.
+</p>
+
+
+</div>
+<div class="section"><p>Affects the following calls to startDespiker(), does not affect the running
+ Despiker instance, if any.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="startDespiker"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/despikersender/DespikerSender.html#startDespiker">startDespiker</a>(string defaultPath = null) @safe
+</code></pre>
+<div class="section "><p>Open a Despiker window and start sending profiling data to it.
+</p>
+
+
+</div>
+<div class="section"><p>Can only be called when sending is false (after DespikerSender construction
+ or reset).
+</p>
+<p> By default, looks for the Despiker binary in the following order:
+</p>
+
+
+</div>
+<div class="section"><h2>0</h2>
+<p> defaultPath, if specified
+</p>
+
+
+</div>
+<div class="section"><h2>1</h2>
+<p> 'despiker' in current working directory
+</p>
+
+
+</div>
+<div class="section"><h2>2</h2>
+<p> 'despiker' in directory of the running binary
+</p>
+
+
+</div>
+<div class="section"><h2>3</h2>
+<p> 'despiker' in PATH
+</p>
+
+
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> the next update() call will send all profiling data recorded so far to the
+ Despiker.
+</p>
+
+</div>
+
+</div>
+<div class="section"><h2>Throws</h2>
+<p> DespikerSenderException on failure (couldn't find or run Despiker in any of the
+ searched paths, or couldn't run Despiker with path specified by defaultPath).
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="reset"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/despikersender/DespikerSender.html#reset">reset</a>() @trusted nothrow @nogc
+</code></pre>
+<div class="section "><p>Resets the sender.
+</p>
+
+
+</div>
+<div class="section"><p>If Despiker is running, 'forgets' it, stops sending to it without closing it and
+ the next startDespiker() call will launch a new Despiker instance.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="update"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/despikersender/DespikerSender.html#update">update</a>() @trusted nothrow
+</code></pre>
+<div class="section "><p>Update the sender.
+</p>
+
+
+</div>
+<div class="section"><p>Must not be called if any profilers passed to DespikerSender constructor are in a
+ zone, or are being accessed by other threads (any synchronization must be handled
+ by the caller).
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="send"></a><div class="symbol"><div class="description"><pre><code>private <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/despikersender/DespikerSender.html#send">send</a>() @trusted
+</code></pre>
+<div class="section "><p>Send profiled data (since the last send()) to Despiker.
+</p>
+
+
+</div>
+<div class="section"><p>Despite not being nothrow, should never throw.
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Variables</h2><table><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#maxProfilers">maxProfilers</a></td><td><pre><code>auto
+</code></pre>
+</td><td><p>Maximum number of profilers we can send data from.
+</p>
+</td></tr></table><h2>Functions</h2><table><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#this">this</a></td><td></td><td><p>Construct a DespikerSender sending data recorded by specified profilers.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#sending">sending</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Is there a Despiker instance (that we are sending to) running at the moment?
+</p>
+</td></tr><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#frameFilter">frameFilter</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Set the filter to used by Despiker to determine which zones are frames.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#startDespiker">startDespiker</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span></span></span></td><td></td><td><p>Open a Despiker window and start sending profiling data to it.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#reset">reset</a><span class="extrainfo"><span class="method-attribs"><span class="attr-trusted">@trusted</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Resets the sender.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#update">update</a><span class="extrainfo"><span class="method-attribs"><span class="attr-trusted">@trusted</span>, <span class="attr-nothrow">nothrow</span></span></span></td><td></td><td><p>Update the sender.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/despikersender/DespikerSender.html#send">send</a><span class="extrainfo"><span class="method-attribs"><span class="attr-trusted">@trusted</span></span></span></td><td></td><td><p>Send profiled data (since the last send()) to Despiker.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

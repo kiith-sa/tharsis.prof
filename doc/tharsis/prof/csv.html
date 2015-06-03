@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+<script src="../../highlight.pack.js"></script>
+<title>tharsis.prof.csv</title>
+<base href="../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.csv</small>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/csv.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/csv.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></span>
+</li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><a class="anchor" id="writeCSVTo"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/csv.html#writeCSVTo">writeCSVTo</a>(ERange, ORange)(
+    ERange events, 
+    ORange output) @trusted 
+if(isInputRange!ERange && is(ElementType!ERange == <a href="tharsis/prof/event/Event.html">Event</a>) && <a href="tharsis/prof/csv.html#isCharOutput">isCharOutput</a>!ORange)
+</code></pre>
+<div class="section "><p>Write Events from a range to CSV.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">events</td><td class="paramDoc"><p>An InputRange of Events to write to CSV.
+</p>
+</td></tr>
+<tr class="param"><td class="paramName">output</td><td class="paramDoc"><p>An OutputRange of characters to write to. Example output ranges: Appender!string or std.stdio.File.lockingTextWriter. No heap memory will be allocated <b>if</b> output does not allocate.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Throws</h2>
+<p> Whatever (if anything) output throws on failure to write more data to it.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="csvEventRange"></a><div class="symbol"><div class="description"><pre><code>public auto <a href="tharsis/prof/csv.html#csvEventRange">csvEventRange</a>(Range)(Range input) nothrow
+</code></pre>
+<div class="section "><p>Get a CSVEventRange parsing character data from input.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="isCharOutput"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> isCharOutput
+</code></pre>
+<div class="section "><p>Determines if R is an output range of characters (of any character type).
+</p>
+
+
+</div>
+</div></div><div class="description"><div class="section "><p>CSV serialization.
+</p>
+
+
+</div>
+</div><div class="section members"><h2>Variables</h2><table><tr><td><a href="tharsis/prof/csv.html#isCharOutput">isCharOutput</a></td><td><pre><code><a href="http://dlang.org/type.html#basic-data-types">bool</a>
+</code></pre>
+</td><td><p>Determines if R is an output range of characters (of any character type).
+</p>
+</td></tr></table><h2>Functions</h2><table><tr><td><a href="tharsis/prof/csv.html#writeCSVTo">writeCSVTo</a><span class="extrainfo"><span class="method-attribs"><span class="attr-trusted">@trusted</span></span></span></td><td></td><td><p>Write Events from a range to CSV.
+</p>
+</td></tr><tr><td><span class="extrainfo"><span class="attribs"><span class="attr-auto">auto</span></span></span><a href="tharsis/prof/csv.html#csvEventRange">csvEventRange</a><span class="extrainfo"><span class="method-attribs"><span class="attr-nothrow">nothrow</span></span></span></td><td></td><td><p>Get a CSVEventRange parsing character data from input.
+</p>
+</td></tr></table><h2>Structs</h2><table><tr><td><a href="tharsis/prof/csv/CSVEventRange.html">CSVEventRange</a></td><td></td><td><p>A range that parses CSV data from a character range (string, file, etc.) and lazily
+generates Events.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

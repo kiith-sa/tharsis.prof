@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+<script src="../../highlight.pack.js"></script>
+<title>tharsis.prof.ranges</title>
+<base href="../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.ranges</small>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/ranges.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/ranges.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><a class="anchor" id="zoneRange"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/ranges/ZoneRange.html">ZoneRange</a>!<a href="tharsis/prof/ranges/EventRange.html">EventRange</a> <a href="tharsis/prof/ranges.html#zoneRange">zoneRange</a>(const(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[] profileData) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct a ZoneRange directly from profile data.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">profileData</td><td class="paramDoc"><p>Profile data recorded by a Profiler. Note that modifying or concatenating raw profile data is unsafe unless you know what you're doing.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Example</h2>
+
+ <pre><code> // <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> profiler;
+
+ // Create a <a href="tharsis/prof/ranges/ZoneRange.html">ZoneRange</a> from profile data with UFCS syntax.
+ auto zones = profiler.profileData.<a href="tharsis/prof/ranges.html#zoneRange">zoneRange</a>;
+ foreach(zone; zones)
+ {
+     import std.stdio;
+     writeln(zone);
+ }
+</code></pre>
+
+</div>
+</div></div><a class="anchor" id="buildZoneData"></a><div class="symbol"><div class="description"><pre><code>package <a href="tharsis/prof/ranges/ZoneData.html">ZoneData</a> <a href="tharsis/prof/ranges.html#buildZoneData">buildZoneData</a>(ZInfo)(
+    const(ZInfo)[] stack, 
+    <a href="http://dlang.org/type.html#basic-data-types">ulong</a> endTime) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Creates ZoneData from a parent zone info stack and end time.
+</p>
+
+
+</div>
+<div class="section"><p>The ZInfo type must have all ZoneInfo members (e.g. by wrapping ZoneInfo with alias this).
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="variableRange"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/ranges/VariableRange.html">VariableRange</a>!<a href="tharsis/prof/ranges/EventRange.html">EventRange</a> <a href="tharsis/prof/ranges.html#variableRange">variableRange</a>(const(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[] profileData) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct a VariableRange directly from profile data.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">profileData</td><td class="paramDoc"><p>Profile data recorded by a Profiler. Note that modifying or concatenating raw profile data is unsafe unless you know what you're doing.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Example</h2>
+
+ <pre><code> // <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> profiler;
+
+ // Create a <a href="tharsis/prof/ranges/VariableRange.html">VariableRange</a> from profile data with UFCS syntax.
+ auto variables = profiler.profileData.<a href="tharsis/prof/ranges.html#variableRange">variableRange</a>;
+ foreach(variable; variables)
+ {
+     import std.stdio;
+     writeln(variable);
+ }
+</code></pre>
+
+</div>
+</div></div><a class="anchor" id="eventRange"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/ranges/EventRange.html">EventRange</a> <a href="tharsis/prof/ranges.html#eventRange">eventRange</a>(const(<a href="http://dlang.org/type.html#basic-data-types">ubyte</a>)[] profileData) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct an EventRange directly from profile data.
+</p>
+
+
+</div>
+<div class="section"><p>ForwardRange of Event.
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">profileData</td><td class="paramDoc"><p>Profile data recorded by a Profiler. Note that modifying or concatenating profile data is unsafe unless you know what you're doing.
+</p>
+</td></tr>
+</table>
+</div>
+<div class="section"><h2>Example</h2>
+
+ <pre><code> // <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> profiler;
+
+ // Create an <a href="tharsis/prof/ranges/EventRange.html">EventRange</a> from profile data with UFCS syntax.
+ auto events = profiler.profileData.<a href="tharsis/prof/ranges.html#eventRange">eventRange</a>;
+ foreach(event; events)
+ {
+     import std.stdio;
+     writeln(event);
+ }
+</code></pre>
+
+</div>
+</div></div><div class="description"><div class="section imports"><h2>Public imports</h2><ul><li><a href="tharsis/prof/accumulatedzonerange.html">tharsis.prof.accumulatedzonerange</a></li>
+</ul>
+
+</div>
+<div class="section "><p>Ranges used to process and analyze profiling results.
+</p>
+
+
+</div>
+<div class="section"><p>Code examples can be found below.
+</p>
+
+
+</div>
+</div><div class="section members"><h2>Functions</h2><table><tr><td><a href="tharsis/prof/ranges.html#zoneRange">zoneRange</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Construct a ZoneRange directly from profile data.
+</p>
+</td></tr><tr><td><span class="extrainfo"><span class="attribs"><span class="attr-package">package</span></span></span><a href="tharsis/prof/ranges.html#buildZoneData">buildZoneData</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Creates ZoneData from a parent zone info stack and end time.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges.html#variableRange">variableRange</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Construct a VariableRange directly from profile data.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges.html#eventRange">eventRange</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Construct an EventRange directly from profile data.
+</p>
+</td></tr></table><h2>Structs</h2><table><tr><td><a href="tharsis/prof/ranges/ZoneData.html">ZoneData</a></td><td></td><td><p>Data about a zone generated by ZoneRange.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/NamedVariable.html">NamedVariable</a></td><td></td><td><p>Variable together with its name and time of the variable event.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/VariableRange.html">VariableRange</a></td><td></td><td><p>Light-weight range that iterates over variables in profile data.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/ZoneRange.html">ZoneRange</a></td><td></td><td><p>Light-weight range that iterates over zones in profile data.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/EventRange.html">EventRange</a></td><td></td><td><p>Light-weight type-safe range that iterates over events in profile data.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" type="text/css" href="../../../style.css"/>
+<script src="../../../highlight.pack.js"></script>
+<title>ZoneRange</title>
+<base href="../../../"/>
+<script src="search.js"></script>
+<script src="show_hide.js"></script>
+</head>
+<body>
+<div class="main">
+<div class="breadcrumbs">
+<table id="results"></table>
+<a href="index.html" class="home">⌂</a><input type="search" id="search" placeholder="Search" onkeyup="searchSubmit(this.value, event)"/>
+<small>tharsis.prof.<a href=tharsis/prof/ranges.html>ranges</a>.</small><span class="highlight">ZoneRange</span>
+</div>
+<div class="sidebar">
+<a href="tharsis/prof/ranges.html#hide-toc" class="hide" id="hide-toc">&#171;</a>
+<a href="tharsis/prof/ranges.html#show-toc" class="show" id="show-toc">&#187;</a>
+<div id="toc-id" class="toc">
+<ul><li><span class="package" onclick="show_hide('tharsis');">tharsis</span>
+<ul id="tharsis" style='display:block'>
+<li><span class="package" onclick="show_hide('tharsis.prof');">tharsis.<a href="tharsis/prof.html">prof</a></span>
+<ul id="tharsis.prof" style='display:block'>
+<li>tharsis.prof.<a href="tharsis/prof/accumulatedzonerange.html">accumulatedzonerange</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/chunkyeventlist.html">chunkyeventlist</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/csv.html">csv</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/despikersender.html">despikersender</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/event.html">event</a></li>
+<li>tharsis.prof.<a href="tharsis/prof/profiler.html">profiler</a></li>
+<li><span class=" selected">tharsis.prof.<a href="tharsis/prof/ranges.html">ranges</a></span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</div></div>
+<div class="content">
+<div class="aggregate-symbol"><div class="description"><pre><code>public struct ZoneRange(ERange)
+</code></pre>
+<div class="section "><p>Light-weight range that iterates over zones in profile data.
+</p>
+
+
+</div>
+<div class="section"><p>Constructed from a ForwardRange of Event (e.g. EventRange or a std.algorithm wrapper
+ around an EventRange). Can also be constructed from raw profile data using eventRange().
+</p>
+<p> ForwardRange of ZoneData ordered by <i>end time</i>.
+ Doesn't allocate any heap memory.
+</p>
+<p> If profile data is incomplete (e.g. because the Profiler ran out of assigned memory in
+ the middle of profiling), zones that don't have zone end events will be automatically
+ ended at the time of the last recorded event.
+</p>
+
+
+</div>
+<div class="section note"><h2>Note:</h2>
+<div class="note-content">
+<p> ZoneRange only supports zone nesting up to ZoneRange.zoneStack nesting levels
+ (currently this is 640, which should be enough for everyone, may be increased in future).
+</p>
+
+</div>
+
+</div>
+<div class="section "><h2>Example</h2>
+<pre><code>// Filter zones based on the info string. Useful to determine durations of only
+// certain zones.
+
+import <a href="tharsis/prof.html">tharsis.prof</a>;
+
+auto storage  = new ubyte[<a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">Profiler.maxEventBytes</a> + 2048];
+auto profiler = new <a href="tharsis/prof/profiler/Profiler.html">Profiler</a>(storage);
+
+// Simulate 16 'frames'
+foreach(frame; 0 .. 16)
+{
+    <a href="tharsis/prof/profiler/Zone.html">Zone</a> topLevel = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+
+    // Simulate frame overhead. Replace <a href="tharsis/prof/ranges/ZoneRange.html#this">this</a> with your frame code.
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameStart");
+        foreach(i; 0 .. 1000) { continue; }
+    }
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameCore");
+        foreach(i; 0 .. 10000) { continue; }
+    }
+}
+
+import std.algorithm;
+// Write duration of each instance of the "frameCore" zone.
+foreach(zone; profiler.profileData.<a href="tharsis/prof/ranges.html#zoneRange">zoneRange</a>.filter!(z => z.info == "frameCore"))
+{
+    import std.stdio;
+    writeln(zone.duration);
+}
+
+</code></pre>
+
+</div>
+<div class="section "><h2>Example</h2>
+<pre><code>// Sort top-level zones by duration. If there is one top-level zone per frame, <a href="tharsis/prof/ranges/ZoneRange.html#this">this</a>
+// sorts frames by duration: useful to get the worst-case frames.
+
+// This example also uses C malloc/free, std.typecons.scoped and std.container.Array
+// to show how to do <a href="tharsis/prof/ranges/ZoneRange.html#this">this</a> without using the GC.
+
+import <a href="tharsis/prof.html">tharsis.prof</a>;
+
+const storageLength = <a href="tharsis/prof/profiler/Profiler.html#maxEventBytes">Profiler.maxEventBytes</a> + 1024 * 1024 * 2;
+
+import core.stdc.stdlib;
+// A simple typed-slice malloc wrapper function would avoid the ugly cast/slicing.
+ubyte[] storage  = (cast(ubyte*)malloc(storageLength))[0 .. storageLength];
+scope(exit) { free(storage.ptr); }
+
+import std.typecons;
+auto profiler = scoped!<a href="tharsis/prof/profiler/Profiler.html">Profiler</a>(storage);
+
+// std.typecons.scoped! stores the <a href="tharsis/prof/profiler/Profiler.html">Profiler</a> on the stack.
+// Simulate 16 'frames'
+foreach(frame; 0 .. 16)
+{
+    <a href="tharsis/prof/profiler/Zone.html">Zone</a> topLevel = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frame");
+
+    // Simulate frame overhead. Replace <a href="tharsis/prof/ranges/ZoneRange.html#this">this</a> with your frame code.
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested1 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameStart");
+        foreach(i; 0 .. 1000) { continue; }
+    }
+    {
+        <a href="tharsis/prof/profiler/Zone.html">Zone</a> nested2 = <a href="tharsis/prof/profiler/Zone.html">Zone</a>(profiler, "frameCore");
+        foreach(i; 0 .. 10000) { continue; }
+    }
+}
+
+import std.algorithm;
+auto zones = profiler.profileData.<a href="tharsis/prof/ranges.html#zoneRange">zoneRange</a>;
+
+// nestLevel of 1 is toplevel.
+auto topLevel = zones.filter!(z => z.nestLevel == 1);
+
+import std.container;
+// std.container.Array constructor builds an RAII array containing zones from topLevel.
+// We need an array as we need random access to sort the zones (<a href="tharsis/prof/ranges/ZoneRange.html">ZoneRange</a> generates
+// <a href="tharsis/prof/ranges/ZoneData.html">ZoneData</a> on-the-fly as it processes profiling data, so it has no random access).
+auto topLevelArray = Array!<a href="tharsis/prof/ranges/ZoneData.html">ZoneData</a>(topLevel);
+topLevelArray[].sort!((a, b) => a.duration > b.duration);
+
+import std.stdio;
+// Print the 4 longest frames.
+foreach(frame; topLevelArray[0 .. 4])
+{
+    writeln(frame);
+}
+
+auto worst = topLevelArray[0];
+
+// Print details about all zones in the worst frame.
+writeln("Zones in the worst frame:");
+foreach(zone; zones.filter!(z => z.startTime >= worst.startTime && z.endTime <= worst.endTime))
+{
+    writefln("%s: %s hnsecs from %s to %s",
+             zone.info, zone.duration, zone.startTime, zone.endTime);
+}
+
+</code></pre>
+
+</div>
+</div><a class="anchor" id="this"></a><div class="symbol"><div class="description"><pre><code>public this(ERange events) @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Construct a ZoneRange processing events from a range of Events (e.g. EventRange).
+</p>
+
+
+</div>
+<div class="section"><h2>Parameters</h2>
+<table class="params">
+<tr class="param"><td class="paramName">events</td><td class="paramDoc"><p>The event range to read from. ZoneRange will create a (shallow) copy, and will not consume this range.
+</p>
+</td></tr>
+</table>
+</div>
+</div></div><a class="anchor" id="front"></a><div class="symbol"><div class="description"><pre><code>public <a href="tharsis/prof/ranges/ZoneData.html">ZoneData</a> <a href="tharsis/prof/ranges/ZoneRange.html#front">front</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Get the current zone.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="popFront"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">void</a> <a href="tharsis/prof/ranges/ZoneRange.html#popFront">popFront</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Go to the next zone.
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="empty"></a><div class="symbol"><div class="description"><pre><code>public <a href="http://dlang.org/type.html#basic-data-types">bool</a> <a href="tharsis/prof/ranges/ZoneRange.html#empty">empty</a>() @safe pure nothrow @nogc
+</code></pre>
+<div class="section "><p>Are there no more zones?
+</p>
+
+
+</div>
+</div></div><a class="anchor" id="save"></a><div class="symbol"><div class="description"><pre><code>public @property <a href="tharsis/prof/ranges/ZoneRange.html">ZoneRange</a> <a href="tharsis/prof/ranges/ZoneRange.html#save">save</a>() @safe pure nothrow const @nogc
+</code></pre>
+<div class="section "><p>Get a copy of the range in its current state.
+</p>
+
+
+</div>
+</div></div><div class="section members"><h2>Functions</h2><table><tr><td><a href="tharsis/prof/ranges/ZoneRange.html#this">this</a></td><td></td><td><p>Construct a ZoneRange processing events from a range of Events (e.g. EventRange).
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/ZoneRange.html#front">front</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get the current zone.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/ZoneRange.html#popFront">popFront</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Go to the next zone.
+</p>
+</td></tr><tr><td><a href="tharsis/prof/ranges/ZoneRange.html#empty">empty</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Are there no more zones?
+</p>
+</td></tr><tr><td><span class="extrainfo"><span class="attribs"><span class="attr-property">@property</span></span></span><a href="tharsis/prof/ranges/ZoneRange.html#save">save</a><span class="extrainfo"><span class="method-attribs"><span class="attr-safe">@safe</span>, <span class="attr-pure">pure</span>, <span class="attr-nothrow">nothrow</span>, <span class="attr-const">const</span>, <span class="attr-nogc">@nogc</span></span></span></td><td></td><td><p>Get a copy of the range in its current state.
+</p>
+</td></tr></table>
+</div>
+</div><script>hljs.initHighlightingOnLoad();</script>
+
+</div>
+<footer>
+Generated with <a href="https://github.com/kiith-sa/harbored-mod">harbored-mod</a>
+</footer>
+</div>
+</body>
+</html>
