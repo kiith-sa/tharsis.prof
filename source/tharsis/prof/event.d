@@ -146,13 +146,27 @@ struct Event
         return info_;
     }
 
+    // Set the info string if this is an Info event.
+    package void info(const(char)[] str) @trusted pure nothrow @nogc
+    {
+        assert(id == EventID.Info, "Can't set info if it's not an Info event");
+        info_ = str;
+    }
+
+    // Reset the union { info_, var_ }, no matter what type of event this is.
+    // Needed in tharsis.prof.ranges because one Event is reused several times.
+    package void resetInfo() @trusted pure nothrow @nogc
+    {
+        info_ = null;
+    }
+
     Variable var() @trusted pure nothrow const @nogc
     {
         assert(id == EventID.Variable, "Can't access variable if it's not a Variable event");
         return var_;
     }
 
-    bool opEquals(ref const(Event) rhs) @safe pure nothrow const @nogc 
+    bool opEquals(ref const(Event) rhs) @safe pure nothrow const @nogc
     {
         if(id != rhs.id || time != rhs.time) { return false; }
         final switch(id)

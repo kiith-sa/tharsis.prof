@@ -105,7 +105,7 @@ auto accumulatedZoneRange(alias accumulate, alias match = defaultMatch, ZRange)
     @trusted pure nothrow @nogc
 {
     static assert(isForwardRange!ZRange && is(Unqual!(ElementType!ZRange) == ZoneData),
-                  "ZRange parameter of accumulatedZoneRange must be a forward range of "
+                  "ZRange parameter of accumulatedZoneRange must be a forward range of " ~
                   "ZoneData, e.g. ZoneRange");
     debug
     {
@@ -113,7 +113,7 @@ auto accumulatedZoneRange(alias accumulate, alias match = defaultMatch, ZRange)
         foreach(ref zoneRange; zones) { zoneCount += zoneRange.save.walkLength; }
 
         assert(storage.length >= zoneCount,
-               "storage param of accumulatedZoneRange must be long enough to hold zones "
+               "storage param of accumulatedZoneRange must be long enough to hold zones " ~
                "from all passed zone ranges");
     }
     alias AccumulatedZone = AccumulatedZoneData!accumulate;

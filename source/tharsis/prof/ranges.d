@@ -139,7 +139,7 @@ struct NamedVariable
  * }
  * --------------------
  */
-VariableRange!EventRange variableRange(const(ubyte)[] profileData) @safe pure nothrow @nogc 
+VariableRange!EventRange variableRange(const(ubyte)[] profileData) @safe pure nothrow @nogc
 {
     return VariableRange!EventRange(profileData.eventRange);
 }
@@ -162,7 +162,7 @@ VariableRange!EventRange variableRange(const(ubyte)[] profileData) @safe pure no
 struct VariableRange(ERange)
 {
     static assert(isForwardRange!ERange && is(Unqual!(ElementType!ERange) == Event),
-                  "ERange parameter of VariableRange must be a forward range of Event, "
+                  "ERange parameter of VariableRange must be a forward range of Event, " ~
                   " e.g. EventRange");
 private:
     // Range to read profiling events from.
@@ -187,7 +187,7 @@ public:
      * events = The event range to read from. VariableRange will create a (shallow) copy,
      *          and will not consume this range.
      */
-    this(ERange events) @safe pure nothrow @nogc 
+    this(ERange events) @safe pure nothrow @nogc
     {
         events_ = events.save;
         getToNextVariableEnd();
@@ -202,7 +202,7 @@ public:
         // variable off the front yet.
         if(events_.empty)
         {
-            assert(variableTime_ != ulong.max, "Non-empty VariableRange with empty "
+            assert(variableTime_ != ulong.max, "Non-empty VariableRange with empty " ~
                    "events_ must have non-default variableTime_");
             return NamedVariable(variableInfo_, variableTime_, variable_);
         }
@@ -342,7 +342,7 @@ unittest
 struct ZoneRange(ERange)
 {
     static assert(isForwardRange!ERange && is(Unqual!(ElementType!ERange) == Event),
-                  "ERange parameter of ZoneRange must be a forward range of Event, e.g. "
+                  "ERange parameter of ZoneRange must be a forward range of Event, e.g. " ~
                   "EventRange");
 
 private:
@@ -518,7 +518,7 @@ unittest
     // Sort top-level zones by duration. If there is one top-level zone per frame, this
     // sorts frames by duration: useful to get the worst-case frames.
 
-    // This example also uses C malloc/free and std.typecons.scoped 
+    // This example also uses C malloc/free and std.typecons.scoped
     // to show how to do this without using the GC.
 
     import tharsis.prof;
@@ -762,7 +762,7 @@ private:
         }
 
         parseTimeBytes(timeBytes);
-        front_.info_ = null;
+        front_.resetInfo();
 
         with(EventID) switch(front_.id)
         {
@@ -781,7 +781,7 @@ private:
                        "Invalid profiling data: info event not followed by string length");
                 const infoBytes = profileData[0];
                 profileData = profileData[1 .. $];
-                front_.info_ = cast(const(char)[])profileData[0 .. infoBytes];
+                front_.info = cast(const(char)[])profileData[0 .. infoBytes];
 
                 assert(profileData.length >= infoBytes,
                        "Invalid profiling data: info event not followed by info string");
@@ -860,7 +860,7 @@ private:
         // }
         //
         // parseTimeBytes(timeBytes);
-        // front_.info_ = null;
+        // front_.resetInfo();
         //
         // with(EventID) switch(front_.id)
         // {
@@ -879,7 +879,7 @@ private:
         //                "Invalid profiling data: info event not followed by string length");
         //         const infoBytes = profileData_.front;
         //         profileData_.popFront;
-        //         front_.info_ = cast(const(char)[])profileData_[0 .. infoBytes];
+        //         front_.info = cast(const(char)[])profileData_[0 .. infoBytes];
         //
         //         assert(profileData_.length >= infoBytes,
         //                "Invalid profiling data: info event not followed by info string");
