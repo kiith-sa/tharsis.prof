@@ -762,7 +762,7 @@ private:
         }
 
         parseTimeBytes(timeBytes);
-        front_.info_ = null;
+        front_.resetInfo();
 
         with(EventID) switch(front_.id)
         {
@@ -781,7 +781,7 @@ private:
                        "Invalid profiling data: info event not followed by string length");
                 const infoBytes = profileData[0];
                 profileData = profileData[1 .. $];
-                front_.info_ = cast(const(char)[])profileData[0 .. infoBytes];
+                front_.info = cast(const(char)[])profileData[0 .. infoBytes];
 
                 assert(profileData.length >= infoBytes,
                        "Invalid profiling data: info event not followed by info string");
@@ -860,7 +860,7 @@ private:
         // }
         //
         // parseTimeBytes(timeBytes);
-        // front_.info_ = null;
+        // front_.resetInfo();
         //
         // with(EventID) switch(front_.id)
         // {
@@ -879,7 +879,7 @@ private:
         //                "Invalid profiling data: info event not followed by string length");
         //         const infoBytes = profileData_.front;
         //         profileData_.popFront;
-        //         front_.info_ = cast(const(char)[])profileData_[0 .. infoBytes];
+        //         front_.info = cast(const(char)[])profileData_[0 .. infoBytes];
         //
         //         assert(profileData_.length >= infoBytes,
         //                "Invalid profiling data: info event not followed by info string");
