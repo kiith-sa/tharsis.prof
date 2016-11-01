@@ -43,7 +43,7 @@ class DespikerSenderException : Exception
  * for(;;)
  * {
  *     // Despiker will consider code in this zone (named "frame") a part of a single frame.
- *     // Which zone is considered a frame can be changed by setting the 
+ *     // Which zone is considered a frame can be changed by setting the
  *     // sender.frameFilter property.
  *     auto frame = Zone(profiler, "frame");
  *
@@ -72,7 +72,7 @@ class DespikerSender
 private:
     /* Profilers we're sending data from.
      *
-     * Despiker assumes that each profiler is used to profile a separate thread 
+     * Despiker assumes that each profiler is used to profile a separate thread
      * (profilers_[0] - thread 0, profilers_[1] - thread 1, etc.).
      */
     Profiler[] profilers_;
@@ -85,7 +85,7 @@ private:
     ProcessPipes despikerPipes_;
 
     /* Storage for bytesSentPerProfiler.
-     * 
+     *
      * Using a fixed-size array for simplest/fastest allocation. 8kiB is acceptable but
      * right at the edge of being acceptable... if we ever increase maxProfilers above
      * 1024, we should use malloc.
@@ -110,7 +110,7 @@ public:
      *
      * Despiker will show results from passed profilers side-by-side, matching their
      * 'frame' zones. To get meaningful results, all profilers should start profiling
-     * at the same time and have one 'frame' zone for each frame of the profiled 
+     * at the same time and have one 'frame' zone for each frame of the profiled
      * game/program.
      *
      * The main use of multiple profilers is to profile code in multiple threads
@@ -231,11 +231,11 @@ public:
         }
 
         throw new DespikerSenderException
-            ("Failed to start Despiker.\n "
+            ("Failed to start Despiker.\n " ~
              "Tried to look for it in:\n "
              ~ defaultPath is null
                ? "" : "0: path provided by caller: '%s'\n".format(defaultPath) ~
-             "1: working directory, 2: directory of the running binary, 3: PATH.\n"
+             "1: working directory, 2: directory of the running binary, 3: PATH.\n" ~
              "Got errors:\n" ~ errorStrings.join("\n"));
     }
 
@@ -247,7 +247,7 @@ public:
     void reset() @trusted nothrow @nogc
     {
         sending_ = false;
-        // Not @nogc yet, although ProcessPipes destruction should not use GC. 
+        // Not @nogc yet, although ProcessPipes destruction should not use GC.
         // Probably don't need to explicitly destroy this here anyway.
         // destroy(despikerPipes_).assumeWontThrow;
         bytesSentPerProfiler_[] = 0;
