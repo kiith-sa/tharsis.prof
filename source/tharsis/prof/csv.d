@@ -7,7 +7,6 @@
 /// CSV serialization.
 module tharsis.prof.csv;
 
-
 import std.algorithm;
 import std.exception;
 import std.format;
@@ -17,6 +16,7 @@ import std.typetuple;
 import tharsis.prof.event;
 import tharsis.prof.profiler;
 import tharsis.prof.ranges;
+import tharsis.prof.compat;
 
 
 /** Write Events from a range to CSV.
@@ -174,7 +174,7 @@ public:
     }
 
     /// Is the range empty (no more events)?
-    bool empty() @safe pure nothrow @nogc { return csv_.empty; }
+    @nogc bool empty() @safe pure nothrow { return csv_.empty; }
 }
 ///
 unittest

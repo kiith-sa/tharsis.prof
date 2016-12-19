@@ -29,12 +29,12 @@
  */
 module tharsis.prof.profiler;
 
-
 import std.algorithm;
 import std.datetime;
 import std.exception;
 
 import tharsis.prof.event;
+import tharsis.prof.compat;
 
 // We're measuring in hectonanoseconds.
 //
@@ -343,7 +343,7 @@ public:
      * When the profiler uses up all memory passed to the constructor, it quietly stops
      * profiling. This can be used to determine if that has happened.
      */
-    bool outOfSpace() @safe pure nothrow const @nogc
+    @nogc bool outOfSpace() @safe pure nothrow const
     {
         // maxEventBytes ensures there's enough space for any single event (the longest
         // event, Info, can be at most 258 bytes long.
@@ -354,7 +354,7 @@ public:
      *
      * Useful for profiling the profiler.
      */
-    Diagnostics diagnostics() @safe pure nothrow const @nogc
+    @nogc Diagnostics diagnostics() @safe pure nothrow const
     {
         return diagnostics_;
     }
@@ -371,7 +371,7 @@ public:
      *       be useful for profiling visualizers and when processing massive profiling
      *       outputs.
      */
-    void checkpointEvent() @safe pure nothrow @nogc
+    @nogc void checkpointEvent() @safe pure nothrow
     {
         if(outOfSpace) { return; }
         eventWithTime(EventID.Checkpoint, 0);
@@ -521,7 +521,7 @@ public:
      *
      * This is a slice to the buffer passed to Profiler's constructor.
      */
-    const(ubyte)[] profileData() @safe pure nothrow const @nogc
+    @nogc const(ubyte)[] profileData() @safe pure nothrow const
     {
         return profileData_[0 .. profileDataUsed_];
     }
@@ -530,7 +530,7 @@ public:
      *
      * 0 means the profiler is not in any zone.
      */
-    uint zoneNestLevel() @safe pure nothrow const @nogc
+    @nogc uint zoneNestLevel() @safe pure nothrow const
     {
         return zoneNestLevel_;
     }
@@ -541,7 +541,7 @@ private:
      * Takes the time we're encoding and returns remainder of that time that is not yet
      * encoded into time btyes (time / 128).
      */
-    ulong addTimeByte(ulong time) @safe pure nothrow @nogc
+    @nogc ulong addTimeByte(ulong time) @safe pure nothrow
     {
         // The last bit ensures the resulting byte is never 0
         profileData_[profileDataUsed_++] = lastBit | cast(ubyte)(time & timeByteMask);
@@ -556,7 +556,7 @@ private:
      * avoid confusion with checkpoint bytes, which are 0). The first byte stores the
      * lowest 7 bits of the time gap, second stores the next 7 bits, etc.
      */
-    void eventWithTime(EventID id, ulong timeLeft) @trusted pure nothrow @nogc
+    @nogc void eventWithTime(EventID id, ulong timeLeft) @trusted pure nothrow
     {
         const idIndex = profileDataUsed_++;
         size_t byteCount = 0;
@@ -608,7 +608,7 @@ private:
      * This event stores character data (at most 255 bytes). Currently info events are
      * only used to 'describe' immediately previous zone start events.
      */
-    void infoEvent(const string info) @trusted pure nothrow @nogc
+    @nogc void infoEvent(const string info) @trusted pure nothrow
     {
         assert(info.length <= ubyte.max, "Zone info strings can be at most 255 bytes long");
         if(outOfSpace) { return; }
@@ -797,7 +797,7 @@ unittest
 
 
         // Just count the number of instances of each zone.
-        size_t accum(size_t* aPtr, ref const ZoneData z) pure nothrow @nogc
+        @nogc size_t accum(size_t* aPtr, ref const ZoneData z) pure nothrow
         {
             return aPtr is null ? 1 : *aPtr + 1;
         }
@@ -822,8 +822,8 @@ package:
  *
  * Returns: A 5-byte slice of target with the encoded data.
  */
-static ubyte[] encode7Bit(ubyte[4] data, ubyte[] target)
-    @safe pure nothrow @nogc
+@nogc static ubyte[] encode7Bit(ubyte[4] data, ubyte[] target)
+    @safe pure nothrow
 {
     assert(target.length >= 5,
             "Not enough space to encode a 4 bytes chunk into 7-bit encoding");
@@ -861,8 +861,8 @@ static ubyte[] encode7Bit(ubyte[4] data, ubyte[] target)
  *
  * See_Also: encode7Bit
  */
-static ubyte[] decode7Bit(ubyte[5] encoded, ubyte[] target)
-    @safe pure nothrow @nogc
+@nogc static ubyte[] decode7Bit(ubyte[5] encoded, ubyte[] target)
+    @safe pure nothrow
 {
     assert(target.length >= 4,
             "Not enough space to decode a 5-byte chunk encoded in 7-bit encoding");

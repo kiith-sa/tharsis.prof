@@ -7,7 +7,9 @@
     "license": "Boost 1.0",
     "homepage": "https://github.com/kiith-sa/tharsis.prof",
     "copyright": "Copyright © 2014, Ferdinand Majerech",
-    "dependencies": { "tinyendian" : { "version" : "~>0.1.1" } },
+    "dependencies": { 
+        "tinyendian" : { "version" : "~master", "path": "../tinyendian" } 
+    },
 
     "buildTypes":
     {

@@ -7,6 +7,7 @@
 /// Profiling event and its members.
 module tharsis.prof.event;
 
+import tharsis.prof.compat;
 
 /** Types of events recorded by Profiler.
  */
@@ -73,7 +74,7 @@ package:
 
 public:
     /// Get the variable type.
-    VariableType type() @safe pure nothrow const @nogc
+    @nogc VariableType type() @safe pure nothrow const
     {
         return type_;
     }
@@ -98,7 +99,7 @@ public:
      *
      * Can only be called if type is VariableType.Int.
      */
-    int varInt() @safe pure nothrow const @nogc
+    @nogc int varInt() @safe pure nothrow const
     {
         assert(type_ == VariableType.Int, "Trying to read a non-int variable as an int");
         return int_;
@@ -108,7 +109,7 @@ public:
      *
      * Can only be called if type is VariableType.Uint.
      */
-    uint varUint() @safe pure nothrow const @nogc
+    @nogc uint varUint() @safe pure nothrow const
     {
         assert(type_ == VariableType.Uint, "Trying to read a non-uint variable as a uint");
         return uint_;
@@ -118,7 +119,7 @@ public:
      *
      * Can only be called if type is VariableType.Float.
      */
-    float varFloat() @safe pure nothrow const @nogc
+    @nogc float varFloat() @safe pure nothrow const
     {
         assert(type_ == VariableType.Float, "Trying to read a non-float variable as a float");
         return float_;
@@ -140,19 +141,19 @@ struct Event
     }
 
     /// Get the info string if this is an Info event.
-    const(char)[] info() @trusted pure nothrow const @nogc
+    @nogc const(char)[] info() @trusted pure nothrow const
     {
         assert(id == EventID.Info, "Can't access info if it's not an Info event");
         return info_;
     }
 
-    Variable var() @trusted pure nothrow const @nogc
+    @nogc Variable var() @trusted pure nothrow const
     {
         assert(id == EventID.Variable, "Can't access variable if it's not a Variable event");
         return var_;
     }
 
-    bool opEquals(ref const(Event) rhs) @safe pure nothrow const @nogc 
+    @nogc bool opEquals(ref const(Event) rhs) @safe pure nothrow const
     {
         if(id != rhs.id || time != rhs.time) { return false; }
         final switch(id)

@@ -8,8 +8,6 @@
  * ranges/generators. */
 module tharsis.prof.chunkyeventlist;
 
-
-
 import std.algorithm;
 import std.array;
 import std.stdio;
@@ -17,6 +15,7 @@ import std.stdio;
 import tharsis.prof.event;
 import tharsis.prof.profiler;
 import tharsis.prof.ranges;
+import tharsis.prof.compat;
 
 
 /** A list of events providing range 'slices', using chunks of profiling data for storage.
@@ -40,7 +39,7 @@ struct ChunkyEventList
         immutable(ubyte)[] data;
 
         /// Get the start time of the first event in the chunk.
-        ulong startTime() @safe pure nothrow const @nogc
+        @nogc ulong startTime() @safe pure nothrow const
         {
             return EventRange(data).front.time;
         }
@@ -94,7 +93,7 @@ struct ChunkyEventList
          *
          * events = Chunky event list to generate events from.
          */
-        this(const(ChunkyEventList)* events) @safe pure nothrow @nogc
+        @nogc this(const(ChunkyEventList)* events) @safe pure nothrow
         {
             events_ = events;
             // If no chunks yet, set 'chunk index' to -1 so we can 'move to the next
@@ -121,7 +120,7 @@ struct ChunkyEventList
          * Returns: true if an event was generated, false otherwise (all chunks that
          *          have been added to the event list so far have been spent).
          */
-        bool generate(out GeneratedEvent event) @safe pure nothrow @nogc
+        @nogc bool generate(out GeneratedEvent event) @safe pure nothrow
         {
             // Done reading current chunk, move to the next one, if any.
             if(currentChunkEvents_.empty)
@@ -197,7 +196,7 @@ struct ChunkyEventList
          * chunks = All chunks in the ChunkyEventList.
          * slice  = Extents of the slice (start/end chunk/byte).
          */
-        this(const(Chunk)[] chunks, SliceExtents slice) @safe pure nothrow @nogc
+        @nogc this(const(Chunk)[] chunks, SliceExtents slice) @safe pure nothrow
         {
             assert(slice.isValid, "Invalid slice in Slice constructor");
 
@@ -222,14 +221,14 @@ struct ChunkyEventList
 
     public:
         /// Get the event on front of the slice.
-        Event front() @safe pure nothrow const @nogc
+        @nogc Event front() @safe pure nothrow const
         {
             assert(!empty, "Can't get front of an empty range");
             return currentChunkEvents_.front();
         }
 
         /// Move to the next event.
-        void popFront() @safe pure nothrow @nogc
+        @nogc void popFront() @safe pure nothrow
         {
             assert(!empty, "Can't pop front of an empty range");
             currentChunkEvents_.popFront();
@@ -262,12 +261,12 @@ struct ChunkyEventList
         }
 
         /// Is the slice empty?
-        bool empty() @safe pure nothrow const @nogc { return currentChunkEvents_.empty; }
+        @nogc bool empty() @safe pure nothrow const { return currentChunkEvents_.empty; }
 
 
         // Must be a property, isForwardRange won't work otherwise.
         /// Get a copy of the slice in its current state.
-        @property Slice save() @safe pure nothrow const @nogc { return this; }
+        @nogc @property Slice save() @safe pure nothrow const { return this; }
     }
 
 
@@ -310,7 +309,7 @@ struct ChunkyEventList
          * start  = Start time of the slice in hectonanoseconds.
          * end    = End time of the slice in hectonanoseconds.
          */
-        this(const(Chunk)[] chunks, ulong start, ulong end) @safe pure nothrow @nogc
+        @nogc this(const(Chunk)[] chunks, ulong start, ulong end) @safe pure nothrow
         {
             // Events starting at start time are included, events ending at end time are not.
             while(!chunks.empty && chunks.front.lastStartTime < start) { chunks.popFront; }
@@ -338,14 +337,14 @@ struct ChunkyEventList
 
     public:
         /// Get the event on front of the slice.
-        Event front() @safe pure nothrow const @nogc
+        @nogc Event front() @safe pure nothrow const
         {
             assert(!empty, "Can't get front of an empty range");
             return currentChunkEvents_.front();
         }
 
         /// Move to the next event.
-        void popFront() @safe pure nothrow @nogc
+        @nogc void popFront() @safe pure nothrow
         {
             assert(!empty, "Can't pop front of an empty range");
 
@@ -368,14 +367,14 @@ struct ChunkyEventList
         }
 
         /// Is the slice empty?
-        bool empty() @safe pure nothrow const @nogc
+        @nogc bool empty() @safe pure nothrow const
         {
             return currentChunkEvents_.empty;
         }
 
         // Must be a property, isForwardRange won't work otherwise.
         /// Get a copy of the range in its current state.
-        @property TimeSlice save() @safe pure nothrow const @nogc { return this; }
+        @nogc @property TimeSlice save() @safe pure nothrow const { return this; }
     }
 
     /// Extents of a Slice.
@@ -396,7 +395,7 @@ struct ChunkyEventList
          *
          * First chunk must be <= last chunk and the extents must not be empty.
          */
-        bool isValid() @safe pure nothrow const @nogc
+        @nogc bool isValid() @safe pure nothrow const
         {
             return firstChunk <= lastChunk &&
                    (firstChunk != lastChunk || firstEventStart < lastEventEnd);
@@ -424,7 +423,7 @@ public:
      *                to allocate more chunks after running out of space. ChunkyEventList
      *                never allocates by itself.
      */
-    this(Chunk[] chunkStorage) @safe pure nothrow @nogc
+    @nogc this(Chunk[] chunkStorage) @safe pure nothrow
     {
         chunkStorage_ = chunkStorage;
     }
@@ -433,7 +432,7 @@ public:
      *
      * If true, more chunk storage must be provided by calling provideStorage().
      */
-    bool outOfSpace() @safe pure nothrow const @nogc
+    @nogc bool outOfSpace() @safe pure nothrow const
     {
         return chunks_.length >= chunkStorage_.length;
     }
@@ -443,7 +442,7 @@ public:
      * Must be called when outOfSpace() returns true. Must provide more space than the
      * preceding provideStorage() or constructor call.
      */
-    void provideStorage(Chunk[] storage) @safe pure nothrow @nogc
+    @nogc void provideStorage(Chunk[] storage) @safe pure nothrow
     {
         assert(storage.length >= chunks_.length,
                "provideStorage does not provide enough space for existing chunks");
@@ -454,7 +453,7 @@ public:
     }
 
     /// Get a generator to produce profiling events from the list over time as chunks are added.
-    Generator generator() @safe pure nothrow const @nogc
+    @nogc Generator generator() @safe pure nothrow const
     {
         return Generator(&this);
     }
@@ -473,7 +472,7 @@ public:
      * Returns: true on success, false if the first event in the chunk didn't occur in
      *          time after the last event already in the list.
      */
-    bool addChunk(immutable(ubyte)[] data) @safe pure nothrow @nogc
+    @nogc bool addChunk(immutable(ubyte)[] data) @safe pure nothrow
     {
         assert(!data.empty, "Can't add an empty chunk of profiling data");
         assert(chunks_.length < chunkStorage_.length, "Out of chunk space");
@@ -498,7 +497,7 @@ public:
      * all events that occured at the time of that zone (e.g. an end of a preceding zone
      * that occured in the same hectonanosecond a new zone started in).
      */
-    Slice slice(SliceExtents slice) @safe pure nothrow const @nogc
+    @nogc Slice slice(SliceExtents slice) @safe pure nothrow const
     {
         return Slice(chunks_, slice);
     }
@@ -510,7 +509,7 @@ public:
      * start = Start of the time slice. Events occuring at this time will be included.
      * end   = End of the time slice. Events occuring at this time will $(D not) be included.
      */
-    TimeSlice timeSlice(ulong start, ulong end) @safe pure nothrow const @nogc
+    @nogc TimeSlice timeSlice(ulong start, ulong end) @safe pure nothrow const
     {
         return TimeSlice(chunks_, start, end);
     }
@@ -639,7 +638,7 @@ public:
      * eventList = Chunky event generator (returned by ChunkyEventList.generator()) to
      *             produce events to generate zones from.
      */
-    this(ChunkyEventGenerator events) @safe pure nothrow @nogc
+    @nogc this(ChunkyEventGenerator events) @safe pure nothrow
     {
         events_ = events;
     }
@@ -653,7 +652,7 @@ public:
      * Returns: true if an zone was generated, false otherwise (all chunks that have been
      *          added to the event list so far have been spent).
      */
-    bool generate(out GeneratedZoneData zone) @safe pure nothrow @nogc
+    @nogc bool generate(out GeneratedZoneData zone) @safe pure nothrow
     {
         events_.GeneratedEvent event;
         while(events_.generate(event))
